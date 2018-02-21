@@ -20,6 +20,12 @@ def test_execute():
 
     assert response.code == 0, "Expected a clean response"
 
+def test_invalid_login():
+    sess = eapi.session(EAPI_HOST, auth=("baduser", "baspass"))
+
+    with pytest.raises(eapi.EapiAuthenticationFailure):
+        sess.login()
+
 def test_execute_bad_command():
     sess = eapi.session(EAPI_HOST)
     response = sess.execute(["show hostname", "show bogus"])

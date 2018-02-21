@@ -205,6 +205,8 @@ class Session(object):
 
         resp = self.send("/command-api", data=payload, **kwargs)
 
+        resp.raise_for_status()
+
         resp = resp.json()
 
         if "error" in resp:
@@ -246,8 +248,6 @@ class Session(object):
             raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
             raise EapiError(str(exc))
-
-        response.raise_for_status()
 
         return response
 
