@@ -244,7 +244,8 @@ class Session(object):
 
         try:
             with DisableSslWarnings():
-                response = self._session.post(url, data=json.dumps(data), **kwargs)
+                response = self._session.post(url, data=json.dumps(data),
+                                              **kwargs)
         except requests.Timeout as exc:
             raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
