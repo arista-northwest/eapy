@@ -62,6 +62,24 @@ class DisableSslWarnings(object):
     def __exit__(self, *args):
         warnings.simplefilter('default', self.category)
 
+class Response(object):
+    """Data structure for EAPI responses"""
+    def __init__(self, output, code=0, message=None):
+        self.code = code
+        self.message = message
+        self.output = output
+
+    def to_dict(self):
+        return {
+            "code": self.code,
+            "message": self.message,
+            "output": self.output
+        }
+
+    def raise_for_error(self):
+        if self.code > 0:
+            raise EapiResponseError((self.code, self.message))
+
 class Session(object):
     """EAPI Session"""
 
@@ -190,7 +208,20 @@ class Session(object):
 
         resp = self.send("/command-api", data=payload, **kwargs)
 
-        return resp.json()
+        resp = resp.json()
+
+        if "error" in resp:
+            errored = resp["error"]
+            code = errored["code"]
+            output = errored["data"]
+            message = errored["message"]
+        else:
+            output = resp["result"]
+
+        return Response(output, code, message)
+
+    # alais for execute to match path and/or JSON-RPC method
+    runCmds = command_api = execute
 
     def send(self, path, data, **kwargs):
         """Sends the request to EAPI"""
