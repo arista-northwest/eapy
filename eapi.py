@@ -8,10 +8,10 @@ from __future__ import (absolute_import, division, print_function,
 import json
 import requests
 import urllib3
-import warnings
 import uuid
+import warnings
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 EAPI_DEFAULT_VERSION = 1
 EAPI_DEFAULT_FORMAT = "json"
