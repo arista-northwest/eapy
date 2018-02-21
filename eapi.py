@@ -2,36 +2,19 @@
 # Copyright (c) 2018 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-
-"""eapi: A Simple eAPI :ibrary
-
-Examples:
-
-Login/logout endpoint:
-
-    with Session(hostaddr, transport="http", auth=("admin", "")) as sess:
-        resp = sess.execute(["show version"], format="json")
-        for item in resp.iter_result():
-            pprint(item)
-
-HTTPS w/client certificate (self-signed use verify=False):
-
-    with Session(hostaddr, transport="https", cert=(cert, key),
-                 verify=False) as sess:
-        resp = sess.execute(["show version"], format="json")
-        for item in resp.iter_result():
-            pprint(item)
-"""
-
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import json
 import requests
 import urllib3
+import warnings
 import uuid
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
+
+EAPI_DEFAULT_VERSION = 1
+EAPI_DEFAULT_FORMAT = "json"
 
 class EapiError(Exception):
     """General eAPI failure"""
@@ -49,11 +32,26 @@ class EapiResponseError(EapiError):
 class EapiAuthenticationFailure(EapiError):
     pass
 
+
+class DisableSslWarnings:
+    """Context manager to disable/enable SSL warnings"""
+
+    def __init__(self, verify):
+        self.no_verify = not verify
+        self.category = urllib3.exceptions.InsecureRequestWarning
+
+    def __enter__(self):
+        if self.no_verify:
+            warnings.simplefilter('ignore', self.category)
+
+    def __exit__(self, *args):
+        warnings.simplefilter('default', self.category)
+
 class Session(object):
     """EAPI Session"""
 
     def __init__(self, hostaddr, auth=("admin", ""), cert=None, port=None,
-                 transport="http", timeout=(5, 300), verify=True):
+                 transport="http", timeout=(5, 300), verify=True,):
 
         # use a requests Session to manage state
         self._session = requests.Session()
@@ -90,8 +88,6 @@ class Session(object):
 
     @verify.setter
     def verify(self, value):
-        if value is False:
-            urllib3.disable_warnings()
         self._verify = value
 
     @property
@@ -142,14 +138,14 @@ class Session(object):
         if self.logged_in:
             return self.send("/logout", data={}, **kwargs)
 
-    def execute(self, commands, format="json", timestamps=False, id=None,
-                **kwargs):
+    def execute(self, commands, format=EAPI_DEFAULT_FORMAT, timestamps=False,
+                id=None, **kwargs):
 
         if not id:
             id = str(uuid.uuid4())
 
         params = {
-            "version": 1,
+            "version": EAPI_DEFAULT_VERSION,
             "cmds": commands,
             "format": format
         }
@@ -189,7 +185,8 @@ class Session(object):
             kwargs.setdefault("verify", self.verify)
 
         try:
-            response = self._session.post(url, data=json.dumps(data), **kwargs)
+            with DisableSslWarnings(self.verify):
+                response = self._session.post(url, data=json.dumps(data), **kwargs)
         except requests.Timeout as exc:
             raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
