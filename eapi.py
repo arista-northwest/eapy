@@ -49,7 +49,7 @@ class EapiAuthenticationFailure(EapiError):
     pass
 
 
-class DisableSslWarnings:
+class DisableSslWarnings(object):
     """Context manager to disable/enable SSL warnings"""
 
     def __init__(self):
