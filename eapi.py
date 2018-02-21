@@ -27,6 +27,8 @@ EAPI_DEFAULT_TRANSPORT = "http"
 EAPI_DEFAULT_AUTH = ("admin", "")
 EAPI_DEFAULT_FORMAT = "json"
 EAPI_EXECUTE_TIMEOUT = 30
+EAPI_INCLUDE_TIMESTAMPS = False
+EAPI_SESSION_HEADERS = {"Content-Type": "application/json"}
 EAPI_SSL_VERIFY = True
 EAPI_SSL_WARNINGS = True
 
@@ -75,7 +77,7 @@ class Session(object):
         self._session = requests.Session()
 
         # every request should send the same headers
-        self._session.headers = {"Content-Type": "application/json"}
+        self._session.headers = EAPI_SESSION_HEADERS
 
         self.hostaddr = hostaddr
 
@@ -158,8 +160,13 @@ class Session(object):
         if self.logged_in:
             return self.send("/logout", data={}, **kwargs)
 
-    def execute(self, commands, format=EAPI_DEFAULT_FORMAT, timestamps=False,
+    def execute(self, commands, format=EAPI_DEFAULT_FORMAT,
+                timestamps=EAPI_INCLUDE_TIMESTAMPS,
                 id=None, **kwargs):
+
+        code = 0
+        message = None
+        output = []
 
         if not id:
             id = str(uuid.uuid4())
