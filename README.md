@@ -45,6 +45,13 @@ resp = sess.execute(["show version"])
 }
 ```
 
+### Specify username and password
+
+```python
+sess = eapi.session(hostaddr, auth=("joe", "j0ep4ss!"))
+resp = sess.execute(["show version"])
+```
+
 
 ### Same over HTTPS will fail if certificate is not trusted.
 
