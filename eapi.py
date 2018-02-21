@@ -3,20 +3,20 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 
-"""eapilib: A Simple eAPI :ibrary
+"""eapi: A Simple eAPI :ibrary
 
 Examples:
 
 Login/logout endpoint:
 
-    with Session(hostaddr, protocol="http", auth=("admin", "")) as sess:
+    with Session(hostaddr, transport="http", auth=("admin", "")) as sess:
         resp = sess.execute(["show version"], format="json")
         for item in resp.iter_result():
             pprint(item)
 
 HTTPS w/client certificate (self-signed use verify=False):
 
-    with Session(hostaddr, protocol="https", cert=(cert, key),
+    with Session(hostaddr, transport="https", cert=(cert, key),
                  verify=False) as sess:
         resp = sess.execute(["show version"], format="json")
         for item in resp.iter_result():
@@ -30,6 +30,8 @@ import json
 import requests
 import urllib3
 import uuid
+
+__version__ = "0.1.1"
 
 class EapiError(Exception):
     """General eAPI failure"""
@@ -50,8 +52,8 @@ class EapiAuthenticationFailure(EapiError):
 class Session(object):
     """EAPI Session"""
 
-    def __init__(self, hostaddr, auth=None, cert=None, port=None,
-                 protocol="http", timeout=(5, 300), verify=True):
+    def __init__(self, hostaddr, auth=("admin", ""), cert=None, port=None,
+                 transport="http", timeout=(5, 300), verify=True):
 
         # use a requests Session to manage state
         self._session = requests.Session()
@@ -67,14 +69,14 @@ class Session(object):
 
         self.port = port
 
-        self.protocol = protocol
+        self.transport = transport
 
         self.timeout = timeout
 
         self.verify = verify
 
     def __enter__(self):
-        if self.auth:
+        if not self.cert:
             self.login()
         return self
 
@@ -99,7 +101,7 @@ class Session(object):
         return False
 
     def prepare_url(self, path=""):
-        url = "{}://{}".format(self.protocol, self.hostaddr)
+        url = "{}://{}".format(self.transport, self.hostaddr)
 
         if self.port:
             url += ":{}".format(self.port)
@@ -165,6 +167,8 @@ class Session(object):
 
         resp = self.send("/command-api", data=payload, **kwargs)
 
+        print(resp)
+
         return resp.json()
 
     def send(self, path, data, **kwargs):
@@ -194,6 +198,9 @@ class Session(object):
 
         return response
 
+def session(*args, **kwargs):
+    return Session(*args, **kwargs)
+
 # if __name__ == "__main__":
 #     import sys
 #     from pprint import pprint
@@ -202,13 +209,13 @@ class Session(object):
 #     cert = sys.argv[2]
 #     key = sys.argv[3]
 #
-#     with Session(hostaddr, protocol="https", cert=(cert, key),
+#     with Session(hostaddr, transport="https", cert=(cert, key),
 #                  verify=False) as sess:
 #         resp = sess.execute(["show version", "show hostname"], format="json")
 #         for item in resp.iter_result():
 #             pprint(item)
 #
-#     with Session(hostaddr, protocol="http", auth=("admin", "")) as sess:
+#     with Session(hostaddr, transport="http", auth=("admin", "")) as sess:
 #         resp = sess.execute(["show version", "show hostname"], format="json")
 #         for item in resp.iter_result():
 #             pprint(item)
