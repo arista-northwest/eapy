@@ -16,6 +16,19 @@ def test_execute():
     sess = eapi.session(EAPI_HOST)
     response = sess.execute(["show hostname"])
 
+    response.raise_for_error()
+
+    assert response.code == 0, "Expected a clean response"
+
+def test_execute_bad_command():
+    sess = eapi.session(EAPI_HOST)
+    response = sess.execute(["show hostname", "show bogus"])
+
+    with pytest.raises(eapi.EapiResponseError):
+        response.raise_for_error()
+
+    assert response.code == 1002, "Expected an errored response"
+
 def test_ssl_verify():
     sess = eapi.session(EAPI_HOST, transport="https", verify=True)
 
