@@ -64,14 +64,16 @@ class DisableSslWarnings(object):
 
 class Response(object):
     """Data structure for EAPI responses"""
-    def __init__(self, output, code=0, message=None):
+    def __init__(self, commands, output, code=0, message=None):
         self.code = code
         self.message = message
         self.output = output
+        self.commands = commands
 
     def to_dict(self):
         return {
             "code": self.code,
+            "commands": self.commands,
             "message": self.message,
             "output": self.output
         }
@@ -149,7 +151,6 @@ class Session(object):
 
     def login(self, **kwargs):
         """Session based Authentication
-
         """
 
         if not len(self.auth) == 2:
@@ -179,15 +180,12 @@ class Session(object):
             return self.send("/logout", data={}, **kwargs)
 
     def execute(self, commands, format=EAPI_DEFAULT_FORMAT,
-                timestamps=EAPI_INCLUDE_TIMESTAMPS,
-                id=None, **kwargs):
+                timestamps=EAPI_INCLUDE_TIMESTAMPS, **kwargs):
 
         code = 0
         message = None
         output = []
-
-        if not id:
-            id = str(uuid.uuid4())
+        request_id = str(uuid.uuid4())
 
         params = {
             "version": 1,
@@ -203,7 +201,7 @@ class Session(object):
             "jsonrpc": "2.0",
             "method": "runCmds",
             "params": params,
-            "id": id
+            "id": request_id
         }
 
         resp = self.send("/command-api", data=payload, **kwargs)
@@ -218,14 +216,13 @@ class Session(object):
         else:
             output = resp["result"]
 
-        return Response(output, code, message)
+        return Response(commands, output, code, message)
 
     # alais for execute to match path and/or JSON-RPC method
     runCmds = command_api = execute
 
     def send(self, path, data, **kwargs):
         """Sends the request to EAPI"""
-
 
         url = self.prepare_url(path)
 
