@@ -4,14 +4,24 @@
 
 import eapi
 import pytest
+import os
 
-EAPI_HOST = "tg219"
+EAPI_HOST = os.environ.get('EAPI_HOST', "veos1")
 
-@pytest.fixture()
-def session():
-    return eapi.session(EAPI_HOST, auth=("admin", ""))
+# @pytest.fixture()
+# def session():
+#     return
 
-def test_execute(session):
-    response = session.execute(["show version"])
+def test_execute():
+    sess = eapi.session(EAPI_HOST, auth=("admin", ""))
+    response = sess.execute(["show hostname"])
 
-    print(response)
+def test_ssl_noverify():
+    sess = eapi.session(EAPI_HOST, transport="https", verify=False)
+    sess.execute(["show hostname"])
+
+def test_ssl_verify():
+    sess = eapi.session(EAPI_HOST, transport="https", verify=True)
+
+    with pytest.raises(eapi.EapiError):
+        sess.execute(["show hostname"])
