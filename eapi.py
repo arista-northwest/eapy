@@ -13,8 +13,22 @@ import warnings
 
 __version__ = "0.1.5"
 
-EAPI_DEFAULT_VERSION = 1
+# Default behaviors
+#
+# Override example (suppress SSL errors and warnings):
+#
+# import eapi
+# eapi.EAPI_DEFAULT_TRANSPORT = "https"
+# eapi.EAPI_SSL_VERIFY = False
+# eapi.EAPI_SSL_WARNINGS = False
+#
+EAPI_CONNECT_TIMEOUT = 5
+EAPI_DEFAULT_TRANSPORT = "http"
+EAPI_DEFAULT_AUTH = ("admin", "")
 EAPI_DEFAULT_FORMAT = "json"
+EAPI_EXECUTE_TIMEOUT = 30
+EAPI_SSL_VERIFY = True
+EAPI_SSL_WARNINGS = True
 
 class EapiError(Exception):
     """General eAPI failure"""
@@ -36,12 +50,11 @@ class EapiAuthenticationFailure(EapiError):
 class DisableSslWarnings:
     """Context manager to disable/enable SSL warnings"""
 
-    def __init__(self, verify):
-        self.no_verify = not verify
+    def __init__(self):
         self.category = urllib3.exceptions.InsecureRequestWarning
 
     def __enter__(self):
-        if self.no_verify:
+        if not EAPI_SSL_WARNINGS:
             warnings.simplefilter('ignore', self.category)
 
     def __exit__(self, *args):
@@ -50,8 +63,13 @@ class DisableSslWarnings:
 class Session(object):
     """EAPI Session"""
 
-    def __init__(self, hostaddr, auth=("admin", ""), cert=None, port=None,
-                 transport="http", timeout=(5, 300), verify=True):
+    def __init__(self, hostaddr,
+                 auth=EAPI_DEFAULT_AUTH,
+                 cert=None,
+                 port=None,
+                 timeout=(EAPI_CONNECT_TIMEOUT, EAPI_EXECUTE_TIMEOUT),
+                 transport=EAPI_DEFAULT_TRANSPORT,
+                 verify=EAPI_SSL_VERIFY):
 
         # use a requests Session to manage state
         self._session = requests.Session()
@@ -88,6 +106,8 @@ class Session(object):
 
     @verify.setter
     def verify(self, value):
+        if not value in (True, False):
+            raise TypeError("Expected a boolean")
         self._verify = value
 
     @property
@@ -145,7 +165,7 @@ class Session(object):
             id = str(uuid.uuid4())
 
         params = {
-            "version": EAPI_DEFAULT_VERSION,
+            "version": 1,
             "cmds": commands,
             "format": format
         }
@@ -185,7 +205,7 @@ class Session(object):
             kwargs.setdefault("verify", self.verify)
 
         try:
-            with DisableSslWarnings(self.verify):
+            with DisableSslWarnings():
                 response = self._session.post(url, data=json.dumps(data), **kwargs)
         except requests.Timeout as exc:
             raise EapiTimeoutError(str(exc))
