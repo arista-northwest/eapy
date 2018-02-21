@@ -201,22 +201,3 @@ class Session(object):
 
 def session(*args, **kwargs):
     return Session(*args, **kwargs)
-
-# if __name__ == "__main__":
-#     import sys
-#     from pprint import pprint
-#
-#     hostaddr = sys.argv[1]
-#     cert = sys.argv[2]
-#     key = sys.argv[3]
-#
-#     with Session(hostaddr, transport="https", cert=(cert, key),
-#                  verify=False) as sess:
-#         resp = sess.execute(["show version", "show hostname"], format="json")
-#         for item in resp.iter_result():
-#             pprint(item)
-#
-#     with Session(hostaddr, transport="http", auth=("admin", "")) as sess:
-#         resp = sess.execute(["show version", "show hostname"], format="json")
-#         for item in resp.iter_result():
-#             pprint(item)
