@@ -142,7 +142,7 @@ class Session(object):
         if self.logged_in:
             return self.send("/logout", data={}, **kwargs)
 
-    def execute(self, commands, format="text", timestamps=False, id=None,
+    def execute(self, commands, format="json", timestamps=False, id=None,
                 **kwargs):
 
         if not id:
