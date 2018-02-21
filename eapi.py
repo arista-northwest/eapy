@@ -51,7 +51,7 @@ class Session(object):
     """EAPI Session"""
 
     def __init__(self, hostaddr, auth=("admin", ""), cert=None, port=None,
-                 transport="http", timeout=(5, 300), verify=True,):
+                 transport="http", timeout=(5, 300), verify=True):
 
         # use a requests Session to manage state
         self._session = requests.Session()
