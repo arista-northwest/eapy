@@ -31,7 +31,7 @@ import requests
 import urllib3
 import uuid
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 class EapiError(Exception):
     """General eAPI failure"""
