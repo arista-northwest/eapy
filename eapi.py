@@ -167,8 +167,6 @@ class Session(object):
 
         resp = self.send("/command-api", data=payload, **kwargs)
 
-        print(resp)
-
         return resp.json()
 
     def send(self, path, data, **kwargs):
@@ -182,12 +180,13 @@ class Session(object):
         if self.cert:
             kwargs.setdefault("cert", self.cert)
 
-            if self.verify is not None:
-                kwargs.setdefault("verify", self.verify)
         elif not self.logged_in:
             # Note: if the Session key is in cookies no auth parameter is
             # required.
             kwargs.setdefault("auth", self.auth)
+
+        if self.verify is not None:
+            kwargs.setdefault("verify", self.verify)
 
         try:
             response = self._session.post(url, data=json.dumps(data), **kwargs)
@@ -195,6 +194,8 @@ class Session(object):
             raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
             raise EapiError(str(exc))
+
+        response.raise_for_status()
 
         return response
 
