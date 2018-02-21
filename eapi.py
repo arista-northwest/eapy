@@ -64,6 +64,7 @@ class DisableSslWarnings(object):
 
 class Response(object):
     """Data structure for EAPI responses"""
+
     def __init__(self, commands, output, code=0, message=None):
         self.code = code
         self.message = message
@@ -161,8 +162,6 @@ class Session(object):
         payload = {"username": username, "password": password}
         resp = self.send("/login", data=payload, **kwargs)
 
-        code = resp.status_code
-
         if resp.status_code == 401:
             raise EapiAuthenticationFailure(resp.text)
         elif resp.status_code == 404 or "Session" not in resp.cookies:
@@ -218,8 +217,8 @@ class Session(object):
 
         return Response(commands, output, code, message)
 
-    # alais for execute to match path and/or JSON-RPC method
-    runCmds = command_api = execute
+    # alais for execute to match '/command-api' path
+    command_api = execute
 
     def send(self, path, data, **kwargs):
         """Sends the request to EAPI"""
