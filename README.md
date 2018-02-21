@@ -23,13 +23,14 @@ Usage
 import eapi
 sess = eapi.session(hostaddr)
 resp = sess.execute(["show version"])
+
+#
+print(resp.output)
 ```
 
 ```
-{
-  'jsonrpc': '2.0',
-  'id': 'eb4a94bd-d0f1-478c-b13c-96c7f71e74e2',
-  'result': [{'modelName': 'DCS-7504',
+[{
+    'modelName': 'DCS-7504',
     'internalVersion': '4.19.5M-LDPLSR-FX-7565027.4195MLDPLSRFX',
     'systemMacAddress': '00:1c:73:03:13:4f',
     'serialNumber': 'JSH11461143',
@@ -41,8 +42,7 @@ resp = sess.execute(["show version"])
     'isIntlVersion': False,
     'internalBuildId': '6abaa56e-e8cf-457d-a858-377689ffb025',
     'hardwareRevision': '02.00'
-  }]
-}
+}]
 ```
 
 ### Specify username and password
@@ -75,6 +75,7 @@ eapi.EapiError: HTTPSConnectionPool(host='tg219', port=443): Max retries exceede
 ### Use _verify=False_ to bypass check
 
 ```python
+eapi.SSL_WARNINGS = False
 sess = eapi.session(hostaddr, transport="https", verify=False)
 resp = sess.execute(["show version"])
 ```
