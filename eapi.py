@@ -18,19 +18,19 @@ __version__ = "0.1.7"
 # Override example (suppress SSL errors and warnings):
 #
 # import eapi
-# eapi.EAPI_DEFAULT_TRANSPORT = "https"
-# eapi.EAPI_SSL_VERIFY = False
-# eapi.EAPI_SSL_WARNINGS = False
+# eapi.DEFAULT_TRANSPORT = "https"
+# eapi.SSL_VERIFY = False
+# eapi.SSL_WARNINGS = False
 #
-EAPI_CONNECT_TIMEOUT = 5
-EAPI_DEFAULT_TRANSPORT = "http"
-EAPI_DEFAULT_AUTH = ("admin", "")
-EAPI_DEFAULT_FORMAT = "json"
-EAPI_EXECUTE_TIMEOUT = 30
-EAPI_INCLUDE_TIMESTAMPS = False
-EAPI_SESSION_HEADERS = {"Content-Type": "application/json"}
-EAPI_SSL_VERIFY = True
-EAPI_SSL_WARNINGS = True
+CONNECT_TIMEOUT = 5
+DEFAULT_TRANSPORT = "http"
+DEFAULT_AUTH = ("admin", "")
+DEFAULT_FORMAT = "json"
+EXECUTE_TIMEOUT = 30
+INCLUDE_TIMESTAMPS = False
+SESSION_HEADERS = {"Content-Type": "application/json"}
+SSL_VERIFY = True
+SSL_WARNINGS = True
 
 class EapiError(Exception):
     """General eAPI failure"""
@@ -56,7 +56,7 @@ class DisableSslWarnings(object):
         self.category = urllib3.exceptions.InsecureRequestWarning
 
     def __enter__(self):
-        if not EAPI_SSL_WARNINGS:
+        if not SSL_WARNINGS:
             warnings.simplefilter('ignore', self.category)
 
     def __exit__(self, *args):
@@ -86,18 +86,18 @@ class Session(object):
     """EAPI Session"""
 
     def __init__(self, hostaddr,
-                 auth=EAPI_DEFAULT_AUTH,
+                 auth=DEFAULT_AUTH,
                  cert=None,
                  port=None,
-                 timeout=(EAPI_CONNECT_TIMEOUT, EAPI_EXECUTE_TIMEOUT),
-                 transport=EAPI_DEFAULT_TRANSPORT,
-                 verify=EAPI_SSL_VERIFY):
+                 timeout=(CONNECT_TIMEOUT, EXECUTE_TIMEOUT),
+                 transport=DEFAULT_TRANSPORT,
+                 verify=SSL_VERIFY):
 
         # use a requests Session to manage state
         self._session = requests.Session()
 
         # every request should send the same headers
-        self._session.headers = EAPI_SESSION_HEADERS
+        self._session.headers = SESSION_HEADERS
 
         self.hostaddr = hostaddr
 
@@ -179,8 +179,8 @@ class Session(object):
         if self.logged_in:
             return self.send("/logout", data={}, **kwargs)
 
-    def execute(self, commands, format=EAPI_DEFAULT_FORMAT,
-                timestamps=EAPI_INCLUDE_TIMESTAMPS, **kwargs):
+    def execute(self, commands, format=DEFAULT_FORMAT,
+                timestamps=INCLUDE_TIMESTAMPS, **kwargs):
 
         code = 0
         message = None

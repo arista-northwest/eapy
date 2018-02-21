@@ -6,7 +6,7 @@ import eapi
 import os
 import pytest
 
-eapi.EAPI_SSL_WARNINGS = False
+eapi.SSL_WARNINGS = False
 
 EAPI_HOST = os.environ.get('EAPI_HOST', "veos1")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
