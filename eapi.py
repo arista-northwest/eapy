@@ -11,7 +11,7 @@ import urllib3
 import uuid
 import warnings
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 # Default behaviors
 #
