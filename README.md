@@ -30,17 +30,18 @@ resp = sess.execute(["show version"])
   'jsonrpc': '2.0',
   'id': 'eb4a94bd-d0f1-478c-b13c-96c7f71e74e2',
   'result': [{'modelName': 'DCS-7504',
-  'internalVersion': '4.19.5M-LDPLSR-FX-7565027.4195MLDPLSRFX',
-  'systemMacAddress': '00:1c:73:03:13:4f',
-  'serialNumber': 'JSH11461143',
-  'memTotal': 31583784,
-  'bootupTimestamp': 1518741254.57,
-  'memFree': 26097728,
-  'version': '4.19.5M-LDPLSR-FX',
-  'architecture': 'i386',
-  'isIntlVersion': False,
-  'internalBuildId': '6abaa56e-e8cf-457d-a858-377689ffb025',
-  'hardwareRevision': '02.00'}]
+    'internalVersion': '4.19.5M-LDPLSR-FX-7565027.4195MLDPLSRFX',
+    'systemMacAddress': '00:1c:73:03:13:4f',
+    'serialNumber': 'JSH11461143',
+    'memTotal': 31583784,
+    'bootupTimestamp': 1518741254.57,
+    'memFree': 26097728,
+    'version': '4.19.5M-LDPLSR-FX',
+    'architecture': 'i386',
+    'isIntlVersion': False,
+    'internalBuildId': '6abaa56e-e8cf-457d-a858-377689ffb025',
+    'hardwareRevision': '02.00'
+  }]
 }
 ```
 
