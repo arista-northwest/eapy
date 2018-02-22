@@ -2,8 +2,7 @@
 # Copyright (c) 2018 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import print_function
 
 import json
 import requests
