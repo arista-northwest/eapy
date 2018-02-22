@@ -94,6 +94,10 @@ class Response(object):
         # original list of commands
         self.commands = commands
 
+    @property
+    def errored(self):
+        return True if self.code > 0 else False
+
     def to_dict(self):
         return {
             "code": self.code,
@@ -103,7 +107,7 @@ class Response(object):
         }
 
     def raise_for_error(self):
-        if self.code > 0:
+        if self.errored:
             raise EapiResponseError((self.code, self.message))
 
 class Session(object):
