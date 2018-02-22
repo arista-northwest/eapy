@@ -20,15 +20,31 @@ __version__ = "0.1.9"
 # eapi.DEFAULT_TRANSPORT = "https"
 # eapi.SSL_VERIFY = False
 # eapi.SSL_WARNINGS = False
-#
+
+# See: http://docs.python-requests.org/en/master/user/advanced/#timeouts
 CONNECT_TIMEOUT = 5
-DEFAULT_TRANSPORT = "http"
-DEFAULT_AUTH = ("admin", "")
-DEFAULT_FORMAT = "json"
+# AKA: 'read timeout'
 EXECUTE_TIMEOUT = 30
+
+# By default eapi uses HTTP.  HTTPS ()'https') is also supported
+DEFAULT_TRANSPORT = "http"
+
+# The default username password for all Aristas is 'admin' with no password
+DEFAULT_AUTH = ("admin", "")
+
+# Specifies the default output format.  The alternative is 'text'
+DEFAULT_FORMAT = "json"
+
+# Specifies whether to add timestamps for each command by default
 INCLUDE_TIMESTAMPS = False
+
+# This should not need to change.  All responses are JSON
 SESSION_HEADERS = {"Content-Type": "application/json"}
+
+# Set this to false to allow untrusted HTTPS/SSL
 SSL_VERIFY = True
+
+# Set this to false to supress warnings about untrusted HTTPS/SSL
 SSL_WARNINGS = True
 
 class EapiError(Exception):
@@ -49,7 +65,7 @@ class EapiAuthenticationFailure(EapiError):
 
 
 class DisableSslWarnings(object):
-    """Context manager to disable/enable SSL warnings"""
+    """Context manager to disable then re-enable SSL warnings"""
 
     def __init__(self):
         self.category = urllib3.exceptions.InsecureRequestWarning
@@ -65,9 +81,17 @@ class Response(object):
     """Data structure for EAPI responses"""
 
     def __init__(self, commands, output, code=0, message=None):
+
+        # status code > 0 signifies an error occured
         self.code = code
+
+        # error message if present
         self.message = message
+
+        # list of responses
         self.output = output
+
+        # original list of commands
         self.commands = commands
 
     def to_dict(self):
@@ -99,18 +123,27 @@ class Session(object):
         # every request should send the same headers
         self._session.headers = SESSION_HEADERS
 
+        # host name or IP address
         self.hostaddr = hostaddr
 
+        # authenication tuple containing (username, password)
         self.auth = auth
 
+        # client certificate/key pair as a tuple
         self.cert = cert
 
+        # port is None for default
         self.port = port
 
+        # http or https
         self.transport = transport
 
+        # timeout value in seconds. can also be specified as a (connect, read)
+        # tuple format
         self.timeout = timeout
 
+        # specifies whether to verify SSL certificate. Can also be set globally
+        # with eapi.SSL_VERIFY
         self.verify = verify
 
     def __enter__(self):
@@ -161,6 +194,8 @@ class Session(object):
         payload = {"username": username, "password": password}
         resp = self.send("/login", data=payload, **kwargs)
 
+        #print("Session:", resp.cookies["Session"], type(resp.cookies["Session"]))
+
         if resp.status_code == 401:
             raise EapiAuthenticationFailure(resp.text)
         elif resp.status_code == 404 or "Session" not in resp.cookies:
@@ -171,6 +206,9 @@ class Session(object):
         elif not resp.ok:
             raise EapiError(resp.reason)
 
+
+        # set auth to none after successful login. it is no longer required for
+        # each request
         self.auth = None
 
     def logout(self, **kwargs):
@@ -210,6 +248,7 @@ class Session(object):
             raise EapiHttpError(str(exc))
         resp = resp.json()
 
+        # normalize the errored and clean responses
         if "error" in resp:
             errored = resp["error"]
             code = errored["code"]
