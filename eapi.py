@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
-
+"""Simple EAPI Client
+"""
 from __future__ import print_function
 
 import json
-import requests
-import urllib3
 import uuid
 import warnings
+import requests
+import urllib3
+
 
 __version__ = "0.1.10"
 
@@ -32,8 +34,8 @@ DEFAULT_TRANSPORT = "http"
 # The default username password for all Aristas is 'admin' with no password
 DEFAULT_AUTH = ("admin", "")
 
-# Specifies the default output format.  The alternative is 'text'
-DEFAULT_FORMAT = "json"
+# Specifies the default output encoding.  The alternative is 'text'
+DEFAULT_ENCODING = "json"
 
 # Specifies whether to add timestamps for each command by default
 INCLUDE_TIMESTAMPS = False
@@ -52,20 +54,25 @@ class EapiError(Exception):
     pass
 
 class EapiTimeoutError(EapiError):
+    """Raise for connect or read timeouts"""
     pass
 
 class EapiHttpError(EapiError):
+    """Raised when HTTP code is not 2xx"""
     pass
 
 class EapiResponseError(EapiError):
+    """The response contains errors"""
     pass
 
 class EapiAuthenticationFailure(EapiError):
+    """authentication has failed"""
     pass
 
 
 class DisableSslWarnings(object):
     """Context manager to disable then re-enable SSL warnings"""
+    #pylint: disable=R0903
 
     def __init__(self):
         self.category = urllib3.exceptions.InsecureRequestWarning
@@ -96,9 +103,11 @@ class Response(object):
 
     @property
     def errored(self):
+        """determine the errored status"""
         return True if self.code > 0 else False
 
     def to_dict(self):
+        """return the response as a dictionary"""
         return {
             "code": self.code,
             "commands": self.commands,
@@ -107,11 +116,13 @@ class Response(object):
         }
 
     def raise_for_error(self):
+        """trigger an exception if response is errored"""
         if self.errored:
             raise EapiResponseError((self.code, self.message))
 
 class Session(object):
     """EAPI Session"""
+    #pylint: disable=R0913,R0902
 
     def __init__(self, hostaddr,
                  auth=DEFAULT_AUTH,
@@ -143,7 +154,7 @@ class Session(object):
         self.transport = transport
 
         # timeout value in seconds. can also be specified as a (connect, read)
-        # tuple format
+        # tuple
         self.timeout = timeout
 
         # specifies whether to verify SSL certificate. Can also be set globally
@@ -160,22 +171,14 @@ class Session(object):
         self.close()
 
     @property
-    def verify(self):
-        return self._verify
-
-    @verify.setter
-    def verify(self, value):
-        if not value in (True, False):
-            raise TypeError("Expected a boolean")
-        self._verify = value
-
-    @property
     def logged_in(self):
+        """determines if session cookie is set"""
         if "Session" in self._session.cookies:
             return True
         return False
 
     def prepare_url(self, path=""):
+        """construct the url from path and transport"""
         url = "{}://{}".format(self.transport, self.hostaddr)
 
         if self.port:
@@ -184,11 +187,11 @@ class Session(object):
         return url + path
 
     def close(self):
+        """shutdown the session"""
         self._session.close()
 
     def login(self, **kwargs):
-        """Session based Authentication
-        """
+        """Session based authentication"""
 
         if not len(self.auth) == 2:
             raise ValueError("username and password auth tuple is required")
@@ -198,8 +201,6 @@ class Session(object):
         payload = {"username": username, "password": password}
         resp = self.send("/login", data=payload, **kwargs)
 
-        #print("Session:", resp.cookies["Session"], type(resp.cookies["Session"]))
-
         if resp.status_code == 401:
             raise EapiAuthenticationFailure(resp.text)
         elif resp.status_code == 404 or "Session" not in resp.cookies:
@@ -208,7 +209,7 @@ class Session(object):
             self.auth = (username, password)
             return
         elif resp.cookies["Session"] == "None":
-            # TODO: this is weird... investigate further
+            # this is weird... investigate further
             raise EapiError("Got cookie Session='None' in response")
         elif not resp.ok:
             raise EapiError(resp.reason)
@@ -219,12 +220,15 @@ class Session(object):
         self.auth = None
 
     def logout(self, **kwargs):
+        """destroys the session"""
         if self.logged_in:
-            return self.send("/logout", data={}, **kwargs)
+            self.send("/logout", data={}, **kwargs)
 
-    def execute(self, commands, format=DEFAULT_FORMAT,
+        self.close()
+
+    def execute(self, commands, encoding=DEFAULT_ENCODING,
                 timestamps=INCLUDE_TIMESTAMPS, **kwargs):
-
+        """Send commands to switch"""
         code = 0
         message = None
         output = []
@@ -233,7 +237,7 @@ class Session(object):
         params = {
             "version": 1,
             "cmds": commands,
-            "format": format
+            "format": encoding
         }
 
         # timestamps is a newer param, only include it if requested
@@ -299,4 +303,5 @@ class Session(object):
         return response
 
 def session(*args, **kwargs):
+    """Helper function for new session"""
     return Session(*args, **kwargs)

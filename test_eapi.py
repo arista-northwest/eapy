@@ -59,12 +59,6 @@ def test_execute_bad_command():
 
     assert response.code == 1002, "Expected an errored response"
 
-def test_ssl_verify_setter():
-
-    with pytest.raises(TypeError):
-        sess = eapi.session(EAPI_HOST, transport="https")
-        sess.verify = "No"
-
 def test_ssl_verify():
     sess = eapi.session(EAPI_HOST, transport="https", verify=True)
 
