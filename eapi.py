@@ -205,8 +205,10 @@ class Session(object):
 
         resp = self.send("/command-api", data=payload, **kwargs)
 
-        resp.raise_for_status()
-
+        try:
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            raise EapiHttpError(str(exc))
         resp = resp.json()
 
         if "error" in resp:
