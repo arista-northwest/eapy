@@ -207,6 +207,9 @@ class Session(object):
             # missing
             self.auth = (username, password)
             return
+        elif resp.cookies["Session"] == "None":
+            # TODO: this is weird... investigate further
+            raise EapiError("Got cookie Session='None' in response")
         elif not resp.ok:
             raise EapiError(resp.reason)
 
