@@ -23,7 +23,7 @@ def test_execute():
     assert response.code == 0, "Expected a clean response"
 
 def test_response():
-    time.sleep(5)
+    #time.sleep(5)
     with eapi.session(EAPI_HOST) as sess:
         response = sess.execute(commands)
 

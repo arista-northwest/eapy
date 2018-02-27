@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2018 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
-"""Simple EAPI Client
-"""
+"""Simple EAPI Client"""
+
 from __future__ import print_function
 
 import json
@@ -10,7 +10,6 @@ import uuid
 import warnings
 import requests
 import urllib3
-
 
 __version__ = "0.2.0"
 
@@ -213,7 +212,6 @@ class Session(object):
             raise EapiError("Got cookie Session='None' in response")
         elif not resp.ok:
             raise EapiError(resp.reason)
-
 
         # set auth to none after successful login. it is no longer required for
         # each request
