@@ -17,11 +17,11 @@ pip3 install git+https://github.com/arista-northwest/eapi-py.git
 Usage
 -----
 
-### Simple example:
+### Simple example (uses default username/password):
 
 ```python
 import eapi
-sess = eapi.session(hostaddr)
+sess = eapi.session("spine1")
 resp = sess.execute(["show version"])
 
 #
@@ -56,7 +56,7 @@ resp = sess.execute(["show version"])
 ### Same over HTTPS will fail if certificate is not trusted.
 
 ```python
-sess = eapi.session(hostaddr, transport="https")
+sess = eapi.session("spine1", transport="https")
 resp = sess.execute(["show version"])
 ```
 
@@ -69,21 +69,22 @@ Traceback (most recent call last):
     resp = self.send("/command-api", data=payload, **kwargs)
   File "/Users/jmather/Projects/eapi-py/eapi.py", line 196, in send
     raise EapiError(str(exc))
-eapi.EapiError: HTTPSConnectionPool(host='tg219', port=443): Max retries exceeded with url: /command-api (Caused by SSLError(SSLError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)'),))
+eapi.EapiError: HTTPSConnectionPool(host='"spine1"', port=443): Max retries exceeded with url: /command-api (Caused by SSLError(SSLError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:777)'),))
 ```
 
 ### Use _verify=False_ to bypass check
 
 ```python
+# this will also disable warnings
 eapi.SSL_WARNINGS = False
-sess = eapi.session(hostaddr, transport="https", verify=False)
+sess = eapi.session("spine1", transport="https", verify=False)
 resp = sess.execute(["show version"])
 ```
 
 ### Client certificates
 
 ```python
-sess = eapi.session(hostaddr, transport="https", verify=False,
-                    cert=(<certfile>, <keyfile>))
+sess = eapi.session("spine1", transport="https", verify=False,
+                    cert=("/path/to/client.crt", "/path/to/client.key"))
 resp = sess.execute(["show version"])
 ```
