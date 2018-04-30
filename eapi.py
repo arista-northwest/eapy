@@ -264,7 +264,7 @@ class Session(object):
         if "error" in resp:
             errored = resp["error"]
             code = errored["code"]
-            output = errored["data"]
+            output = errored.get("data")
             message = errored["message"]
         else:
             output = resp["result"]
