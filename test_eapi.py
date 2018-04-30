@@ -9,7 +9,7 @@ import time
 
 eapi.SSL_WARNINGS = False
 
-EAPI_HOST = os.environ.get('EAPI_HOST', "veos1")
+EAPI_HOST = os.environ.get('EAPI_HOST', "veos")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 commands = ["show hostname"]
