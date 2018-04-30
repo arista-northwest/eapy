@@ -91,6 +91,7 @@ class Response(object):
         # parent session object
         self.session = session
 
+        # status code != 0 signifies an error occured
         self.code = code
 
         # error message if present
@@ -105,7 +106,7 @@ class Response(object):
     @property
     def errored(self):
         """determine the errored status"""
-        return True if self.code > 0 else False
+        return True if self.code != 0 else False
 
     def to_dict(self):
         """return the response as a dictionary"""
