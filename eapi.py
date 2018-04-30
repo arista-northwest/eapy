@@ -86,9 +86,11 @@ class DisableSslWarnings(object):
 class Response(object):
     """Data structure for EAPI responses"""
 
-    def __init__(self, commands, output, code=0, message=None):
+    def __init__(self, session, commands, output, code=0, message=None):
 
-        # status code > 0 signifies an error occured
+        # parent session object
+        self.session = session
+
         self.code = code
 
         # error message if present
