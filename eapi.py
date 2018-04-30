@@ -267,9 +267,16 @@ class Session(object):
             output = errored.get("data")
             message = errored["message"]
         else:
-            output = resp["result"]
 
         return Response(commands, output, code, message)
+            if encoding == "text":
+                output = [
+                    r["output"]
+                    for r in resp["result"]
+                ]
+            else:
+                output = resp["result"]
+
 
     # alais for execute to match '/command-api' path
     command_api = execute
