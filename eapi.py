@@ -267,8 +267,6 @@ class Session(object):
             output = errored.get("data")
             message = errored["message"]
         else:
-
-        return Response(commands, output, code, message)
             if encoding == "text":
                 output = [
                     r["output"]
@@ -277,6 +275,7 @@ class Session(object):
             else:
                 output = resp["result"]
 
+        return Response(self, commands, output, code, message)
 
     # alais for execute to match '/command-api' path
     command_api = execute
