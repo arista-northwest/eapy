@@ -3,15 +3,14 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 """Simple EAPI Client"""
 
-from __future__ import print_function
-
 import json
 import uuid
 import warnings
-import requests
 import urllib3
 
-__version__ = "0.2.2"
+import requests
+
+__version__ = "0.2.3"
 
 # Default behaviors
 #
@@ -278,7 +277,7 @@ class Session(object):
         return Response(self, commands, output, code, message)
 
     # alais for execute to match '/command-api' path
-    command_api = execute
+    command_api = send = execute
 
     def _send(self, path, data, **kwargs):
         """Sends the request to EAPI"""
