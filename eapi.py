@@ -11,7 +11,7 @@ import warnings
 import requests
 import urllib3
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 # Default behaviors
 #
