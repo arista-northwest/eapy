@@ -201,7 +201,7 @@ class Session(object):
         username, password = self.auth
 
         payload = {"username": username, "password": password}
-        resp = self.send("/login", data=payload, **kwargs)
+        resp = self._send("/login", data=payload, **kwargs)
 
         if resp.status_code == 401:
             raise EapiAuthenticationFailure(resp.text)
@@ -223,7 +223,7 @@ class Session(object):
     def logout(self, **kwargs):
         """destroys the session"""
         if self.logged_in:
-            self.send("/logout", data={}, **kwargs)
+            self._send("/logout", data={}, **kwargs)
 
         self.close()
 
@@ -252,7 +252,7 @@ class Session(object):
             "id": request_id
         }
 
-        resp = self.send("/command-api", data=payload, **kwargs)
+        resp = self._send("/command-api", data=payload, **kwargs)
 
         try:
             resp.raise_for_status()
@@ -274,7 +274,7 @@ class Session(object):
     # alais for execute to match '/command-api' path
     command_api = execute
 
-    def send(self, path, data, **kwargs):
+    def _send(self, path, data, **kwargs):
         """Sends the request to EAPI"""
 
         url = self.prepare_url(path)
