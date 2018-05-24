@@ -83,6 +83,8 @@ resp = sess.execute(["show version"])
 
 ### Client certificates
 
+See the eAPI client certificate authentication cheetsheet [here](https://gist.github.com/mathershifter/6a8c894156e3c320a443e575f986d78b).
+
 ```python
 sess = eapi.session("spine1", transport="https", verify=False,
                     cert=("/path/to/client.crt", "/path/to/client.key"))
