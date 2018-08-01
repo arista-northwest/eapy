@@ -32,7 +32,7 @@ DEFAULT_TRANSPORT = "http"
 # The default username password for all Aristas is 'admin' with no password
 DEFAULT_AUTH = ("admin", "")
 
-# Specifies the default output encoding.  The alternative is 'text'
+# Specifies the default result encoding.  The alternative is 'text'
 DEFAULT_ENCODING = "json"
 
 # Specifies whether to add timestamps for each command by default
@@ -85,22 +85,26 @@ class DisableSslWarnings(object):
 class Response(object):
     """Data structure for EAPI responses"""
 
-    def __init__(self, session, commands, output, code=0, message=None):
-
-        # parent session object
-        self.session = session
+    def __init__(self, session, commands, encoding, result, code=0,
+                 message=None):
 
         # status code != 0 signifies an error occured
         self.code = code
+
+        # original list of commands
+        self.commands = commands
+
+        # result format (json or text)
+        self.encoding = encoding
 
         # error message if present
         self.message = message
 
         # list of responses
-        self.output = output
+        self.result = result
 
-        # original list of commands
-        self.commands = commands
+        # parent session object
+        self.session = session
 
     @property
     def errored(self):
@@ -112,8 +116,9 @@ class Response(object):
         return {
             "code": self.code,
             "commands": self.commands,
+            "encoding": self.encoding,
             "message": self.message,
-            "output": self.output
+            "result": self.result
         }
 
     def raise_for_error(self):
@@ -231,7 +236,7 @@ class Session(object):
         """Send commands to switch"""
         code = 0
         message = None
-        output = []
+        result = []
         request_id = str(uuid.uuid4())
 
         params = {
@@ -263,18 +268,12 @@ class Session(object):
         if "error" in resp:
             errored = resp["error"]
             code = errored["code"]
-            output = errored.get("data")
+            result = errored.get("data")
             message = errored["message"]
         else:
-            if encoding == "text":
-                output = [
-                    r["output"]
-                    for r in resp["result"]
-                ]
-            else:
-                output = resp["result"]
+            result = resp["result"]
 
-        return Response(self, commands, output, code, message)
+        return Response(self, commands, encoding, result, code, message)
 
     # alais for execute to match '/command-api' path
     command_api = send = execute
