@@ -7,11 +7,18 @@ import os
 import pytest
 import time
 
-eapi.SSL_WARNINGS = False
+
 
 EAPI_HOST = os.environ.get('EAPI_HOST', "veos")
+EAPI_USER = os.environ.get('EAPI_USER', "admin")
+EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', None)
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
+EAPI_CA_CERT = os.environ.get('EAPI_CA_CERT', False)
+
+eapi.SSL_WARNINGS = False
+eapi.DEFAULT_AUTH = (EAPI_USER, EAPI_PASSWORD)
+
 commands = ["show hostname"]
 
 def test_execute():
@@ -74,6 +81,6 @@ def test_ssl_client_cert():
         pytest.skip("certificate/key pair is not set")
 
     sess = eapi.session(EAPI_HOST, cert=(EAPI_CLIENT_CERT, EAPI_CLIENT_KEY),
-                        transport="https", verify=False)
+                        transport="https", verify=EAPI_CA_CERT)
 
     sess.execute(commands)
