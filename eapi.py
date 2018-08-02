@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.1"
+__version__ = "0.3.3"
 
 # Default behaviors
 #
@@ -142,9 +142,6 @@ class Response(object):
         # status code != 0 signifies an error occured
         self.code = code
 
-        # # original list of commands
-        # self.commands = commands
-
         # result format (json or text)
         self.encoding = encoding
 
@@ -159,6 +156,11 @@ class Response(object):
 
         # parent session object
         self.session = session
+    def __getitem__(self, item):
+        return self.result[item]
+
+    def __iter__(self):
+        return iter(self.result)
 
     @property
     def errored(self):
