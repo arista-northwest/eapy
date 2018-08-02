@@ -172,6 +172,9 @@ class Response(object):
     def __iter__(self):
         return iter(self.result)
 
+    def __len__(self):
+        return len(self.result)
+
     @property
     def errored(self):
         """determine the errored status"""
