@@ -113,7 +113,7 @@ class ResponseItem(object):
     def result(self):
         """returns result in requested encoding"""
         if self.encoding == "json":
-            return self.json
+            return self.dict
         else:
             return self.text
 
@@ -122,7 +122,7 @@ class ResponseItem(object):
     @property
     def text(self):
         if self.encoding == "json":
-            return json.dumps(self._result, indent=2, separators=(',', ': '))
+            return self.to_json(indent=2, separators=(',', ': '))
         elif self.encoding == "text":
             # ensure 'None' is not returned
             return self._result.get("output") or ""
@@ -131,7 +131,17 @@ class ResponseItem(object):
 
     @property
     def json(self):
+        return self.to_json()
+
+    @property
+    def dict(self):
+        return self.to_dict()
+
+    def to_dict(self):
         return self._result
+
+    def to_json(self, indent=None, separators=None):
+        return json.dumps(self._result, indent=indent, separators=separators)
 
 class Response(object):
     """Data structure for EAPI responses"""
