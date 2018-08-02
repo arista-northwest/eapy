@@ -47,6 +47,19 @@ SSL_VERIFY = True
 # Set this to false to supress warnings about untrusted HTTPS/SSL
 SSL_WARNINGS = True
 
+def zipnpad(keys, values, default=None):
+    """zips two lits and pads the second to match the first"""
+
+    keys_len = len(keys)
+    values_len = len(values)
+
+    if (keys_len < values_len):
+        raise ValueError("keys must be as long or longer than values")
+
+    values += [default] * (keys_len - values_len)
+
+    return zip(keys, values)
+
 class EapiError(Exception):
     """General eAPI failure"""
     pass
@@ -82,6 +95,44 @@ class DisableSslWarnings(object):
     def __exit__(self, *args):
         warnings.simplefilter('default', self.category)
 
+class ResponseItem(object):
+    """Cleans-up formatting inconsistencies"""
+
+    def __init__(self, response, command, result):
+
+        self._result = result
+        self.command = command
+        self.response = response
+
+        self.encoding = self.response.encoding
+
+    def __str__(self):
+        return self.text
+
+    @property
+    def result(self):
+        """returns result in requested encoding"""
+        if self.encoding == "json":
+            return self.json
+        else:
+            return self.text
+
+    output = result
+
+    @property
+    def text(self):
+        if self.encoding == "json":
+            return json.dumps(self._result, indent=2, separators=(',', ': '))
+        elif self.encoding == "text":
+            # ensure 'None' is not returned
+            return self._result.get("output") or ""
+        else:
+            raise ValueError("Invalid encoding: {}".format(self.encoding))
+
+    @property
+    def json(self):
+        return self._result
+
 class Response(object):
     """Data structure for EAPI responses"""
 
@@ -91,8 +142,8 @@ class Response(object):
         # status code != 0 signifies an error occured
         self.code = code
 
-        # original list of commands
-        self.commands = commands
+        # # original list of commands
+        # self.commands = commands
 
         # result format (json or text)
         self.encoding = encoding
@@ -101,7 +152,10 @@ class Response(object):
         self.message = message
 
         # list of responses
-        self.result = result
+        self.result = [
+            ResponseItem(self, resp[0], resp[1])
+            for resp in zipnpad(commands, result)
+        ]
 
         # parent session object
         self.session = session
