@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.4"
+__version__ = "0.3.5"
 
 # Default behaviors
 #
