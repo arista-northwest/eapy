@@ -26,7 +26,7 @@ CONNECT_TIMEOUT = 5
 # AKA: 'read timeout'
 EXECUTE_TIMEOUT = 30
 
-# By default eapi uses HTTP.  HTTPS ()'https') is also supported
+# By default eapi uses HTTP.  HTTPS ('https') is also supported
 DEFAULT_TRANSPORT = "http"
 
 # The default username password for all Aristas is 'admin' with no password
