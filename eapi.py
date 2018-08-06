@@ -280,8 +280,6 @@ class Session(object):
 
         resp = self._send("/login", data=payload, **kwargs)
 
-        print(resp.status_code, self._session.cookies)
-
         if resp.status_code == 401:
             raise EapiAuthenticationFailure(resp.text)
 
