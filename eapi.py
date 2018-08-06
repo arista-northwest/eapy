@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 # Default behaviors
 #
@@ -210,6 +210,9 @@ class Session(object):
         # use a requests Session to manage state
         self._session = requests.Session()
 
+        # self._session.post("http://veos2/login", data=json.dumps({"username": "admin", "password": ""}))
+        # print(self._session.cookies)
+
         # every request should send the same headers
         self._session.headers = SESSION_HEADERS
 
@@ -274,18 +277,29 @@ class Session(object):
         username, password = self.auth
 
         payload = {"username": username, "password": password}
+
         resp = self._send("/login", data=payload, **kwargs)
+
+        print(resp.status_code, self._session.cookies)
 
         if resp.status_code == 401:
             raise EapiAuthenticationFailure(resp.text)
-        elif resp.status_code == 404 or "Session" not in resp.cookies:
+
+        elif resp.status_code == 404:
             # fall back to basic auth if /login is not found or Session key is
             # missing
             self.auth = (username, password)
             return
+
+        elif "Session" not in resp.cookies:
+            warnings.warn("Got a good response, but no 'Session' found in " \
+                          "cookies. Falling back to basic authentication")
+
         elif resp.cookies["Session"] == "None":
             # this is weird... investigate further
-            raise EapiError("Got cookie Session='None' in response")
+            warnings.warn("Got cookie Session='None' in response. Falling " \
+                          "back to basic authentication")
+
         elif not resp.ok:
             raise EapiError(resp.reason)
 
@@ -369,6 +383,7 @@ class Session(object):
             with DisableSslWarnings():
                 response = self._session.post(url, data=json.dumps(data),
                                               **kwargs)
+
         except requests.Timeout as exc:
             raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
