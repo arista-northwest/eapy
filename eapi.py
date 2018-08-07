@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.7"
+__version__ = "0.3.8"
 
 # Default behaviors
 #
@@ -161,7 +161,7 @@ class Response(object):
         # list of responses
         self.result = [
             ResponseItem(self, resp[0], resp[1])
-            for resp in zipnpad(commands, result)
+            for resp in zipnpad(commands, result, {})
         ]
 
         # parent session object
