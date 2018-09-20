@@ -280,16 +280,26 @@ class Session(object):
 
         resp = self._send("/login", data=payload, **kwargs)
 
-        if resp.status_code == 401:
-            raise EapiAuthenticationFailure(resp.text)
+        try:
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            raise EapiHttpError(str(exc))
 
-        elif resp.status_code == 404:
+        if resp.status_code == 404:
             # fall back to basic auth if /login is not found or Session key is
             # missing
             self.auth = (username, password)
             return
 
-        elif "Session" not in resp.cookies:
+        if resp.status_code == 401:
+            raise EapiAuthenticationFailure(resp.text)
+
+        try:
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            raise EapiHttpError(str(exc))
+
+        if "Session" not in resp.cookies:
             warnings.warn("Got a good response, but no 'Session' found in " \
                           "cookies. Falling back to basic authentication")
 
