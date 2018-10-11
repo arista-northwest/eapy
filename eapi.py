@@ -311,9 +311,10 @@ class Session(object):
         elif not resp.ok:
             raise EapiError(resp.reason)
 
-        # set auth to none after successful login. it is no longer required for
-        # each request
-        self.auth = None
+        else
+            # set auth to none after successful login. it is no longer required for
+            # each request
+            self.auth = None
 
     def logout(self, **kwargs):
         """destroys the session"""
