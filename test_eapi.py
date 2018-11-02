@@ -36,9 +36,6 @@ def test_response():
 
         assert "result" in response.to_dict()
 
-        for result in response.result:
-
-
 def test_with_context():
     with eapi.session(EAPI_HOST) as sess:
         sess.execute(commands)

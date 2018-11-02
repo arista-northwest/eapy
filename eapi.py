@@ -47,8 +47,8 @@ SSL_VERIFY = True
 # Set this to false to supress warnings about untrusted HTTPS/SSL
 SSL_WARNINGS = True
 
-def zipnpad(keys, values, default=None):
-    """zips two lits and pads the second to match the first"""
+def _zpad(keys, values, default=None):
+    """zips two lits and pads the second to match the first in length"""
 
     keys_len = len(keys)
     values_len = len(values)
@@ -161,7 +161,7 @@ class Response(object):
         # list of responses
         self.result = [
             ResponseItem(self, resp[0], resp[1])
-            for resp in zipnpad(commands, result, {})
+            for resp in _zpad(commands, result, {})
         ]
 
         # parent session object
