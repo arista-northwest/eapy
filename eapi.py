@@ -184,7 +184,7 @@ class Response(object):
         """return the response as a dictionary"""
         return {
             "code": self.code,
-            "commands": self.commands,
+            # "commands": self.commands,
             "encoding": self.encoding,
             "message": self.message,
             "result": self.result
