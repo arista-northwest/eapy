@@ -7,8 +7,6 @@ import os
 import pytest
 import time
 
-
-
 EAPI_HOST = os.environ.get('EAPI_HOST', "veos")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
 EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', None)
@@ -19,7 +17,7 @@ EAPI_CA_CERT = os.environ.get('EAPI_CA_CERT', False)
 eapi.SSL_WARNINGS = False
 eapi.DEFAULT_AUTH = (EAPI_USER, EAPI_PASSWORD)
 
-commands = ["show hostname"]
+commands = ["show hostname", "show version"]
 
 def test_execute():
     sess = eapi.session(EAPI_HOST)
@@ -34,9 +32,12 @@ def test_response():
     with eapi.session(EAPI_HOST) as sess:
         response = sess.execute(commands)
 
-        assert hasattr(response, "output")
+        assert hasattr(response, "result")
 
-        assert "output" in response.to_dict()
+        assert "result" in response.to_dict()
+
+        for result in response.result:
+
 
 def test_with_context():
     with eapi.session(EAPI_HOST) as sess:
