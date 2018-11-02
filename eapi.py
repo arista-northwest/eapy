@@ -210,9 +210,6 @@ class Session(object):
         # use a requests Session to manage state
         self._session = requests.Session()
 
-        # self._session.post("http://veos2/login", data=json.dumps({"username": "admin", "password": ""}))
-        # print(self._session.cookies)
-
         # every request should send the same headers
         self._session.headers = SESSION_HEADERS
 
@@ -280,11 +277,6 @@ class Session(object):
 
         resp = self._send("/login", data=payload, **kwargs)
 
-        try:
-            resp.raise_for_status()
-        except requests.exceptions.HTTPError as exc:
-            raise EapiHttpError(str(exc))
-
         if resp.status_code == 404:
             # fall back to basic auth if /login is not found or Session key is
             # missing
@@ -300,8 +292,8 @@ class Session(object):
             raise EapiHttpError(str(exc))
 
         if "Session" not in resp.cookies:
-            warnings.warn("Got a good response, but no 'Session' found in " \
-                          "cookies. Falling back to basic authentication")
+            warnings.warn(("Got a good response, but no 'Session' found in "
+                           "cookies. Falling back to basic authentication"))
 
         elif resp.cookies["Session"] == "None":
             # this is weird... investigate further
@@ -311,9 +303,9 @@ class Session(object):
         elif not resp.ok:
             raise EapiError(resp.reason)
 
-        else
-            # set auth to none after successful login. it is no longer required for
-            # each request
+        else:
+            # set auth to none after successful login. it is no longer required
+            # for each request
             self.auth = None
 
     def logout(self, **kwargs):
@@ -392,7 +384,6 @@ class Session(object):
             with DisableSslWarnings():
                 response = self._session.post(url, data=json.dumps(data),
                                               **kwargs)
-
         except requests.Timeout as exc:
             raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
