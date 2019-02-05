@@ -106,6 +106,15 @@ class ResponseItem(object):
 
         self.encoding = self.response.encoding
 
+    def __contains__(self, item):
+        return item in str(self._result)
+
+    def __getitem__(self, item):
+        if isinstance(item, slice) or isinstance(item, int):
+            return str(self._result)[item]
+        else:
+            return self._result[item]
+
     def __str__(self):
         return self.text
 
@@ -166,6 +175,7 @@ class Response(object):
 
         # parent session object
         self.session = session
+
     def __getitem__(self, item):
         return self.result[item]
 
