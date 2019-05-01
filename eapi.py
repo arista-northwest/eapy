@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.10"
+__version__ = "0.3.11"
 
 # Default behaviors
 #
@@ -227,7 +227,7 @@ class Session(object):
         self.hostaddr = hostaddr
 
         # authenication tuple containing (username, password)
-        self.auth = auth
+        self.auth = tuple(auth)
 
         # client certificate/key pair as a tuple
         self.cert = cert
