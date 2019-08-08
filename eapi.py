@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.11"
+__version__ = "0.3.12"
 
 # Default behaviors
 #
@@ -210,7 +210,7 @@ class Session(object):
     #pylint: disable=R0913,R0902
 
     def __init__(self, hostaddr,
-                 auth=DEFAULT_AUTH,
+                 auth=(),
                  cert=None,
                  port=None,
                  timeout=(CONNECT_TIMEOUT, EXECUTE_TIMEOUT),
@@ -227,8 +227,8 @@ class Session(object):
         self.hostaddr = hostaddr
 
         # authenication tuple containing (username, password)
-        self.auth = tuple(auth)
-
+        self.auth = tuple(auth or DEFAULT_AUTH)
+        
         # client certificate/key pair as a tuple
         self.cert = cert
 
