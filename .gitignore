@@ -105,3 +105,5 @@ ENV/
 .envrc
 
 .pytest_cache/
+
+.vscode/
