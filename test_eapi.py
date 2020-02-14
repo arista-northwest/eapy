@@ -9,7 +9,7 @@ import time
 
 EAPI_HOST = os.environ.get('EAPI_HOST', "veos")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
-EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', None)
+EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 EAPI_CA_CERT = os.environ.get('EAPI_CA_CERT', False)
@@ -25,13 +25,15 @@ def test_execute():
 
     response.raise_for_error()
 
+    # print(str(response))
+
     assert response.code == 0, "Expected a clean response"
 
 def test_response():
     #time.sleep(5)
     with eapi.session(EAPI_HOST) as sess:
         response = sess.execute(commands)
-
+        
         assert hasattr(response, "result")
 
         assert "result" in response.to_dict()

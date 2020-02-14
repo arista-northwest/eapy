@@ -47,6 +47,7 @@ SSL_VERIFY = True
 # Set this to false to supress warnings about untrusted HTTPS/SSL
 SSL_WARNINGS = True
 
+
 def _zpad(keys, values, default=None):
     """zips two lits and pads the second to match the first in length"""
 
@@ -60,21 +61,26 @@ def _zpad(keys, values, default=None):
 
     return zip(keys, values)
 
+
 class EapiError(Exception):
     """General eAPI failure"""
     pass
+
 
 class EapiTimeoutError(EapiError):
     """Raise for connect or read timeouts"""
     pass
 
+
 class EapiHttpError(EapiError):
     """Raised when HTTP code is not 2xx"""
     pass
 
+
 class EapiResponseError(EapiError):
     """The response contains errors"""
     pass
+
 
 class EapiAuthenticationFailure(EapiError):
     """authentication has failed"""
@@ -94,6 +100,7 @@ class DisableSslWarnings(object):
 
     def __exit__(self, *args):
         warnings.simplefilter('default', self.category)
+
 
 class ResponseItem(object):
     """Cleans-up formatting inconsistencies"""
@@ -152,6 +159,7 @@ class ResponseItem(object):
     def to_json(self, indent=None, separators=None):
         return json.dumps(self._result, indent=indent, separators=separators)
 
+
 class Response(object):
     """Data structure for EAPI responses"""
 
@@ -205,9 +213,10 @@ class Response(object):
         if self.errored:
             raise EapiResponseError((self.code, self.message))
 
+
 class Session(object):
     """EAPI Session"""
-    #pylint: disable=R0913,R0902
+    # pylint: disable=R0913,R0902
 
     def __init__(self, hostaddr,
                  auth=(),
@@ -228,7 +237,7 @@ class Session(object):
 
         # authenication tuple containing (username, password)
         self.auth = tuple(auth or DEFAULT_AUTH)
-        
+
         # client certificate/key pair as a tuple
         self.cert = cert
 
@@ -283,6 +292,8 @@ class Session(object):
 
         username, password = self.auth
 
+        password = str(password)
+
         payload = {"username": username, "password": password}
 
         resp = self._send("/login", data=payload, **kwargs)
@@ -307,7 +318,7 @@ class Session(object):
 
         elif resp.cookies["Session"] == "None":
             # this is weird... investigate further
-            warnings.warn("Got cookie Session='None' in response. Falling " \
+            warnings.warn("Got cookie Session='None' in response. Falling "
                           "back to basic authentication")
 
         elif not resp.ok:
@@ -400,6 +411,7 @@ class Session(object):
             raise EapiError(str(exc))
 
         return response
+
 
 def session(*args, **kwargs):
     """Helper function for new session"""
