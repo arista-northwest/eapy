@@ -10,7 +10,7 @@ import urllib3
 
 import requests
 
-__version__ = "0.3.12"
+__version__ = "0.4.0"
 
 # Default behaviors
 #
@@ -193,6 +193,9 @@ class Response(object):
     def __len__(self):
         return len(self.result)
 
+    def __str__(self):
+        return self.to_json()
+
     @property
     def errored(self):
         """determine the errored status"""
@@ -200,13 +203,17 @@ class Response(object):
 
     def to_dict(self):
         """return the response as a dictionary"""
+        commands, results = zip(*[(r.command, r.output) for r in self.result])
         return {
             "code": self.code,
-            # "commands": self.commands,
             "encoding": self.encoding,
             "message": self.message,
-            "result": self.result
+            "commands": commands,
+            "results": results
         }
+
+    def to_json(self, indent=None, separators=None):
+        return json.dumps(self.to_dict(), indent=indent, separators=separators)
 
     def raise_for_error(self):
         """trigger an exception if response is errored"""

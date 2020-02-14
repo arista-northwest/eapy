@@ -7,6 +7,8 @@ import os
 import pytest
 import time
 
+from pprint import pprint
+
 EAPI_HOST = os.environ.get('EAPI_HOST', "veos")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
 EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")
@@ -84,3 +86,10 @@ def test_ssl_client_cert():
                         transport="https", verify=EAPI_CA_CERT)
 
     sess.execute(commands)
+
+def test_to_string():
+    with eapi.session(EAPI_HOST) as sess:
+        response = sess.execute(commands, encoding="json")
+        pprint(response.to_dict())
+        print(str(response))
+        print(response.to_json(2, (', ', ': ')))
