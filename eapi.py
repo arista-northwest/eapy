@@ -284,7 +284,7 @@ class Session(object):
             return True
         return False
 
-    def prepare_url(self, path=""):
+    def _prepare_url(self, path=""):
         """construct the url from path and transport"""
         url = "{}://{}".format(self.transport, self.hostaddr)
 
@@ -399,7 +399,7 @@ class Session(object):
     def _send(self, path, data, **kwargs):
         """Sends the request to EAPI"""
 
-        url = self.prepare_url(path)
+        url = self._prepare_url(path)
 
         kwargs.setdefault("timeout", self.timeout)
 

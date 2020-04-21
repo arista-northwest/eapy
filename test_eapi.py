@@ -68,7 +68,7 @@ def test_login():
 
 def test_prepare_url():
     sess = eapi.session(EAPI_HOST)
-    sess.prepare_url(path="/fake-path")
+    sess._prepare_url(path="/fake-path")
 
 def test_invalid_login():
     sess = eapi.session(EAPI_HOST, auth=("baduser", "baspass"))
