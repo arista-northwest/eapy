@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2018 Arista Networks, Inc.  All rights reserved.
+# Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-import eapi
 import os
-import pytest
-import time
+import sys
 
 from pprint import pprint
+
+import pytest
+
+sys.path.insert(0, os.path.abspath("."))
+
+import eapi
 
 EAPI_HOST = os.environ.get('EAPI_HOST', "veos")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
@@ -21,14 +25,21 @@ eapi.DEFAULT_AUTH = (EAPI_USER, EAPI_PASSWORD)
 
 commands = ["show hostname", "show version"]
 
+def test_zpad():
+    a = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    z = ['z', 'y', 'x', 'w']
+
+    r = list(eapi._zpad(a[:], z[:], None))
+    assert len(r) == len(a)
+    
+    with pytest.raises(ValueError):
+        eapi._zpad(z[:], a[:], None)
+
 def test_execute():
     sess = eapi.session(EAPI_HOST)
     response = sess.execute(commands)
 
     response.raise_for_error()
-
-    # print(str(response))
-
     assert response.code == 0, "Expected a clean response"
 
 def test_response():
@@ -38,8 +49,14 @@ def test_response():
         
         assert hasattr(response, "result")
 
-        assert "result" in response.to_dict()
+        assert "results" in response.to_dict()
 
+def test_search_response():
+    with eapi.session(EAPI_HOST) as sess:
+        response = sess.execute(commands)
+        assert "version" in response
+        assert "version" in response[1]
+    
 def test_with_context():
     with eapi.session(EAPI_HOST) as sess:
         sess.execute(commands)
@@ -78,9 +95,10 @@ def test_ssl_noverify():
     sess = eapi.session(EAPI_HOST, transport="https", verify=False)
     sess.execute(commands)
 
+@pytest.mark.skipif(not EAPI_CLIENT_CERT, reason="certificate/key pair is not set")
 def test_ssl_client_cert():
-    if not (EAPI_CLIENT_CERT and EAPI_CLIENT_KEY):
-        pytest.skip("certificate/key pair is not set")
+    # if not (EAPI_CLIENT_CERT and EAPI_CLIENT_KEY):
+    #     pytest.skip("certificate/key pair is not set")
 
     sess = eapi.session(EAPI_HOST, cert=(EAPI_CLIENT_CERT, EAPI_CLIENT_KEY),
                         transport="https", verify=EAPI_CA_CERT)
