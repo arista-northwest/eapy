@@ -11,7 +11,17 @@ Installation
 ------------
 
 ```
-pip3 install git+https://github.com/arista-northwest/eapi-py.git
+pip3 install eapi-py
+```
+
+Development
+-----------
+
+```
+git clone https://gitlab.aristanetworks.com/arista-northwest/eapi-py.git
+# installs pipenv and requirements
+make init
+pipenv shell
 ```
 
 Usage
