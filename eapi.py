@@ -184,6 +184,12 @@ class Response(object):
         # parent session object
         self.session = session
 
+    def __contains__(self, item):
+        for result in self.result:
+            if item in result:
+                return True
+        return False
+
     def __getitem__(self, item):
         return self.result[item]
 
