@@ -1,2 +1,2 @@
 [run]
-include = eapi.py
+include = eapi/*

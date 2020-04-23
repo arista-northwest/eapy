@@ -11,6 +11,7 @@ Sphinx="*"
 
 [packages]
 requests="*"
+typing-extensions="*"
 
 [requires]
 python_version = "3.7"

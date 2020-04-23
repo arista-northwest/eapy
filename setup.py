@@ -15,7 +15,9 @@ setup(
     version=version,
     py_modules=['eapi'],
     install_requires=[
-        'requests>=2.18.4'
+        'requests>=2.18.4',
+        'typing-extensions>=3.7.4.2',
+        'PyYAML>=5.3.1'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
