@@ -2,6 +2,7 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+from pprint import pformat
 from collections.abc import Mapping
 from typing import List, Union
 from typing_extensions import TypedDict
@@ -22,6 +23,10 @@ class TextResult(object):
     def __str__(self):
         return self._data
 
+    @property
+    def pretty(self):
+        return self._data
+
 class JsonResult(Mapping):
     def __init__(self, result: dict):
         self._data = result
@@ -37,6 +42,10 @@ class JsonResult(Mapping):
 
     def __str__(self):
         return str(self._data)
+
+    @property
+    def pretty(self):
+        return pformat(self._data)
 
 class ResponseElem(object):
     def __init__(self, command: Command, result: Union[TextResult, JsonResult]):
@@ -58,6 +67,7 @@ class ResponseElem(object):
         
         return {
             "command": self.command,
+            "input": self.input,
             "result": result
         }
 
@@ -68,7 +78,7 @@ class ResponseElem(object):
 class Response(object):
 
     def __init__(self, target, elements: List[ResponseElem], error: Error = None):
-        self.target = target
+        self._target = target
         self.elements = elements
         self.error = error
 
@@ -83,11 +93,16 @@ class Response(object):
     def message(self):
         return self.error.get("message", "OK")
     
+    @property
+    def target(self):
+        return self._target
+
     def __iter__(self):
         return iter(self.elements)
 
     def to_dict(self) -> dict:
         out = {}
+        out["target"] = self._target
         out["status"] = [self.code, self.message]
 
         out["responses"] = []
@@ -98,15 +113,14 @@ class Response(object):
 
     def __str__(self):
         text = "target: %s\n" % self.target
-        text += "status: [%d] %s\n\n" % (self.code, self.message or "OK")
+        text += "status: [%d, %s]\n\n" % (self.code, self.message or "OK")
         
         text += "responses:\n"
 
         for elem in self.elements:
-            d = elem.to_dict()
             text += "- command: %s\n" % elem.command
             text += "  result: |\n"
-            text += indent("    ", str(d["result"]))
+            text += indent("    ", elem.result.pretty)
             text += "\n"
         return text
 
