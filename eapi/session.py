@@ -114,8 +114,14 @@ class Session(object):
         cookie = self._session.cookies.get("Session", domain=host)
         return True if cookie else False
 
-    def close(self):
-        """shutdown the session"""
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.shutdown()
+
+    def shutdown(self):
+        """shutdown the underlying requests session"""
         self._session.close()
     
     def new(self, target: StrictTarget, auth: Auth, transport: str = TRANSPORT, options: RequestsOptions = {}) -> None:
@@ -175,7 +181,7 @@ class Session(object):
 
         return True
 
-    def logout(self, target: Target):
+    def close(self, target: Target):
         """destroys the session"""
         
         transport, options = self._eapi_sessions.get(target).params
@@ -183,6 +189,7 @@ class Session(object):
         if self.logged_in(target):
             url = prepare_url(target, transport, "/logout")
             self._send(url, data={}, options=options)
+    logout = close
 
     def send(self, target: Target, commands: List[Command],
             encoding: str = ENCODING,

@@ -20,7 +20,7 @@ def new(target, auth: Auth, **kwargs) -> None:
     :param options: pass through `requests` options
     :param type: RequestsOptions
     """
-    session.login(target, auth=auth, **kwargs)
+    session.new(target, auth=auth, **kwargs)
 login = new
 
 def logout(target: Target, **kwargs):
