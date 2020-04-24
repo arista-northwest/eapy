@@ -3,12 +3,12 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 from typing import List, Optional
 
-from eapi.structures import Target, Auth, Command
+from eapi.structures import Target, Auth, Certificate, Command
 from eapi.messages import Response
 from eapi import session
 
 
-def new(target: Target, auth: Auth, transport: Optional[str] = None,
+def new(target: Target, auth: Optional[Auth] = None, cert: Optional[Certificate] = None,
         **kwargs) -> None:
     """Create an eAPI session
 
@@ -16,12 +16,12 @@ def new(target: Target, auth: Auth, transport: Optional[str] = None,
     :param type: Target
     :param auth: username, password tuple
     :param type: Auth
-    :param transport: http or https (default: http)
-    :param type: str
+    :param cert: client certificate or (certificate, key) tuple
+    :param type: Certificate
     :param \*\*options: pass through `requests` options
     :param type: RequestsOptions
     """
-    session.new(target, auth=auth, transport=transport, **kwargs)
+    session.new(target, auth=auth, cert=cert, **kwargs)
 
 
 login = new
@@ -44,8 +44,7 @@ logout = close
 
 
 def execute(target: Target, commands: List[Command],
-        encoding: Optional[str] = None, transport: Optional[str] = None,
-        **kwargs) -> Response:
+            encoding: Optional[str] = None, **kwargs) -> Response:
     """Send an eAPI request
 
     :param target: eAPI target 

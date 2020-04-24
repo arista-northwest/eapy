@@ -31,9 +31,8 @@ Usage
 
 ```python
 >>> import eapi
->>> resp = eapi.execute("veos", ["show version"], encoding="text",
-...    options={"auth": ("admin", "password")})
-...
+>>> resp = eapi.execute("veos", ["show version"], auth=("admin", "password"), encoding="text")
+>>>
 >>> print(resp)
 ```
 
@@ -66,7 +65,7 @@ responses:
 # Login - to avoid sending password everytime
  
 ```python
->>> eapi.new("veos3", ("admin", ""))
+>>> eapi.new("veos3", auth=("admin", ""))
 >>> resp = eapi.execute("veos3", ["show version"], encoding="text")
 >>> print(resp)
 ... output omitted ...
@@ -77,12 +76,10 @@ responses:
 _disabled warnings for this example_
 
 ```python
->>> eapi.session.SSL_WARNINGS = False
->>> eapi.new("veos", ("admin", ""), transport="https", , options={
-...   verify=False
-... })
-...
->>> resp = eapi.execute("veos", ["show version"], encoding="text")
+>>> eapi.sessions.SSL_WARNINGS = False
+>>> eapi.new("https://veos", auth=("admin", ""), verify=False)
+>>>
+>>> resp = eapi.execute("https://veos", ["show version"], encoding="text")
 ...
 >>> print(resp)
 ... output omitted ...
@@ -93,9 +90,7 @@ _disabled warnings for this example_
 See the eAPI client certificate authentication cheetsheet [here](https://gist.github.com/mathershifter/6a8c894156e3c320a443e575f986d78b).
 
 ```python
-eapi.new("veos", transport="https", options={
-  "cert": ("/path/to/client.crt", "/path/to/client.key"),
-  "verify": False
-}
-resp = eapi.execute("veos", ["show version"])
+>>> eapi.sessions.SSL_WARNINGS = False
+>>> eapi.new("https://veos", cert=("/path/to/client.crt", "/path/to/client.key"), verify=False)
+>>> resp = eapi.execute("https://veos", ["show version"])
 ```

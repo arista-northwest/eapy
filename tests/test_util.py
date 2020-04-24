@@ -7,7 +7,7 @@ from typing import Tuple, Optional
 import pytest
 
 import eapi.sessions
-from eapi.util import indent, prepare_cmd, prepare_request, prepare_target, zpad
+from eapi.util import indent, prepare_cmd, prepare_request, zpad
 
 @pytest.mark.parametrize("text", [
     "a\nb\nc\nd\nf"
@@ -43,16 +43,16 @@ def test_prepare_request(reqwest):
     assert p["params"]["format"] == eapi.sessions.ENCODING
 
 
-def test_prepare_target():
+# def test_prepare_target():
 
-    assert prepare_target("host", transport="http") == "http://host"
-    assert prepare_target("host//", transport="http") == "http://host"
-    assert prepare_target("http://host:80") == "http://host:80"
-    assert prepare_target("host:8080", transport="http") == "http://host:8080"
-    # assert prepare_target(("host", 443), transport="https") == "https://host:443"
-    assert prepare_target("host", transport="https") == "https://host"
-    assert prepare_target("host:443", transport="https") == "https://host:443"
-    assert prepare_target("host:8443", transport="https") == "https://host:8443"
+#     assert prepare_target("host", transport="http") == "http://host"
+#     assert prepare_target("host//", transport="http") == "http://host"
+#     assert prepare_target("http://host:80") == "http://host:80"
+#     assert prepare_target("host:8080", transport="http") == "http://host:8080"
+#     # assert prepare_target(("host", 443), transport="https") == "https://host:443"
+#     assert prepare_target("host", transport="https") == "https://host"
+#     assert prepare_target("host:443", transport="https") == "https://host:443"
+#     assert prepare_target("host:8443", transport="https") == "https://host:8443"
 
 def test_zpad():
     a = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
