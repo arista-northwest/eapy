@@ -66,7 +66,7 @@ responses:
 # Login - to avoid sending password everytime
  
 ```python
->>> eapi.login("veos3", ("admin", ""))
+>>> eapi.new("veos3", ("admin", ""))
 >>> resp = eapi.execute("veos3", ["show version"], encoding="text")
 >>> print(resp)
 ... output omitted ...
@@ -78,13 +78,11 @@ _disabled warnings for this example_
 
 ```python
 >>> eapi.session.SSL_WARNINGS = False
->>> eapi.login("veos", ("admin", ""), transport="https", , options={
+>>> eapi.new("veos", ("admin", ""), transport="https", , options={
 ...   verify=False
 ... })
 ...
->>> resp = eapi.execute("veos", ["show version"], transport="https", encoding="text", options={
-...   verify=False
-... })
+>>> resp = eapi.execute("veos", ["show version"], encoding="text")
 ...
 >>> print(resp)
 ... output omitted ...
