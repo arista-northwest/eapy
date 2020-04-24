@@ -7,7 +7,8 @@ from eapi.structures import Target, Auth, Command
 from eapi.messages import Response
 from eapi import session
 
-def login(target, auth: Auth, **kwargs) -> None:
+
+def new(target, auth: Auth, **kwargs) -> None:
     """Create an eAPI session
 
     :param target: eAPI target 
@@ -20,6 +21,7 @@ def login(target, auth: Auth, **kwargs) -> None:
     :param type: RequestsOptions
     """
     session.login(target, auth=auth, **kwargs)
+login = new
 
 def logout(target: Target, **kwargs):
     """End an eAPI session

@@ -46,8 +46,9 @@ def reqwest(commands, request) -> Request:
     return prepare_request(commands, request.param)
 
 @pytest.fixture()
-def text_response(commands):
-    return {
+def text_response():
+    request = prepare_request(["show hostname", "show version"], "text")
+    response = {
         'jsonrpc': '2.0',
         'id': '45e8f5f4-7620-43c9-8407-da0a03bbcc50',
         'result': [
@@ -70,9 +71,12 @@ def text_response(commands):
         ]
     }
 
+    return "localhost", request, response
+
 @pytest.fixture()
-def json_response(commands):
-    return {
+def json_response():
+    request = prepare_request(["show hostname", "show version"], "json")
+    response = {
         'jsonrpc': '2.0',
         'id': '532c456f-0b5a-4e20-885b-0e838aa1bb57',
         'result': [
@@ -98,9 +102,12 @@ def json_response(commands):
         ]
     }
 
+    return "localhost", request, response
+
 @pytest.fixture()
-def errored_response(fake_session):
-    return {
+def errored_response():
+    request = prepare_request(["show hostname", "show bogus"], "json")
+    response = {
         'jsonrpc': '2.0',
         'id': '6585432e-2214-43d8-be6b-06bf68617aba',
         'error': {
@@ -120,8 +127,12 @@ def errored_response(fake_session):
         }
     }
 
+    return "localhost", request, response 
+
+@pytest.fixture()
 def errored_text_response():
-    return {
+    request = prepare_request(["show hostname", "show bogus"], "text")
+    response = {
         'jsonrpc': '2.0',
         'id': '072cdc16-be82-4f98-9c42-549a954b5881',
         'error': {
@@ -138,3 +149,5 @@ def errored_text_response():
             'code': 1002
         }
     }
+
+    return "localhost", request, response

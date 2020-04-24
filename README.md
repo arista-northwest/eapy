@@ -95,8 +95,9 @@ _disabled warnings for this example_
 See the eAPI client certificate authentication cheetsheet [here](https://gist.github.com/mathershifter/6a8c894156e3c320a443e575f986d78b).
 
 ```python
-sess = eapi.execute("host", transport="https", verify=False, options={
+eapi.new("veos", transport="https", options={
   "cert": ("/path/to/client.crt", "/path/to/client.key"),
   "verify": False
-})
+}
+resp = eapi.execute("veos", ["show version"])
 ```

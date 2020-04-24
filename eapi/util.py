@@ -47,7 +47,7 @@ def prepare_request(commands: List[Command], encoding: str) -> Request:
     }
     return req
 
-def prepare_url(target: Target, transport: str, path="") -> str:
+def prepare_url(target: Target, transport: str = "http", path="") -> str:
         """construct the url from path and transport"""
 
         host, port = prepare_target(target)

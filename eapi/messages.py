@@ -96,6 +96,9 @@ class Response(object):
     @property
     def target(self):
         return self._target
+    
+    def __contains__(self, name):
+        return name in self.__str__()
 
     def __iter__(self):
         return iter(self.elements)
