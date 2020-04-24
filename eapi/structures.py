@@ -15,7 +15,7 @@ Command = Union[str, PromptedCommand]
 Params = TypedDict('Params', {
     'version': int,
     'cmds': List[Command],
-    'format': str ,
+    'format': str,
     'timestamps': bool
 }, total=False)
 
@@ -41,4 +41,3 @@ RequestsOptions = TypedDict('RequestsOptions', {
     'cert': Certificate,
     'verify': bool
 }, total=False)
-

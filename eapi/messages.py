@@ -16,6 +16,7 @@ Error = TypedDict('Error', {
     'message': str
 })
 
+
 class TextResult(object):
     def __init__(self, result: str):
         self._data = result.strip()
@@ -27,16 +28,17 @@ class TextResult(object):
     def pretty(self):
         return self._data
 
+
 class JsonResult(Mapping):
     def __init__(self, result: dict):
         self._data = result
 
     def __getitem__(self, name):
         return self._data[name]
-    
+
     def __iter__(self):
         return iter(self._data)
-    
+
     def __len__(self):
         return len(self._data)
 
@@ -47,10 +49,11 @@ class JsonResult(Mapping):
     def pretty(self):
         return pformat(self._data)
 
+
 class ResponseElem(object):
     def __init__(self, command: Command, result: Union[TextResult, JsonResult]):
         self._command = command
-        
+
         if isinstance(self._command, str):
             self.command = self._command
         else:
@@ -64,7 +67,7 @@ class ResponseElem(object):
             result = dict(self.result)
         else:
             result = str(self.result)
-        
+
         return {
             "command": self.command,
             "input": self.input,
@@ -74,7 +77,7 @@ class ResponseElem(object):
     def __str__(self):
         return str(self.result)
 
-        
+
 class Response(object):
 
     def __init__(self, target, elements: List[ResponseElem], error: Error = None):
@@ -92,11 +95,11 @@ class Response(object):
     @property
     def message(self):
         return self.error.get("message", "OK")
-    
+
     @property
     def target(self):
         return self._target
-    
+
     def __contains__(self, name):
         return name in self.__str__()
 
@@ -117,7 +120,7 @@ class Response(object):
     def __str__(self):
         text = "target: %s\n" % self.target
         text += "status: [%d, %s]\n\n" % (self.code, self.message or "OK")
-        
+
         text += "responses:\n"
 
         for elem in self.elements:
@@ -138,10 +141,9 @@ class Response(object):
         code: int = 0
         message: str = ""
 
-        
         errored = response.get("error")
         results = []
-        
+
         if errored:
             # dump the errored output
             results = errored["data"]

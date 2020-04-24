@@ -8,7 +8,7 @@ from eapi.messages import Response
 from eapi import session
 
 
-def new(target, auth: Auth, **kwargs) -> None:
+def new(target: Target, auth: Auth, **kwargs) -> None:
     """Create an eAPI session
 
     :param target: eAPI target 
@@ -21,9 +21,12 @@ def new(target, auth: Auth, **kwargs) -> None:
     :param type: RequestsOptions
     """
     session.new(target, auth=auth, **kwargs)
+
+
 login = new
 
-def logout(target: Target, **kwargs):
+
+def close(target: Target, **kwargs):
     """End an eAPI session
 
     :param target: eAPI target 
@@ -34,6 +37,10 @@ def logout(target: Target, **kwargs):
     :param type: RequestsOptions
     """
     session.logout(target, **kwargs)
+
+
+logout = close
+
 
 def execute(target: Target, commands: List[Command], **kwargs) -> Response:
     """Send an eAPI request
@@ -59,8 +66,9 @@ def execute(target: Target, commands: List[Command], **kwargs) -> Response:
 
     return response
 
+
 def enable(target: Target, commands: List[Command], secret: str = "",
-        **kwargs) -> Response:
+           **kwargs) -> Response:
     r"""Prepend 'enable' command
     :param target: eAPI target 
     :param type: Target
@@ -77,7 +85,7 @@ def enable(target: Target, commands: List[Command], secret: str = "",
 
 def configure(target: Target, commands: List[Command], **kwargs) -> Response:
     r"""Wrap commands in a 'configure'/'end' block
-    
+
     :param target: eAPI target 
     :param type: Target
     :param commmands: List of commands to send to target
