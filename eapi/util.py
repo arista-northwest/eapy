@@ -3,9 +3,11 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 import uuid
-
+from urllib.parse import urlparse, urlunparse
 from typing import Optional, Union, List
-from eapi.structures import Command, Params, Request, Target, StrictTarget
+
+import eapi.sessions
+from eapi.structures import Command, Params, Request, Target
 
 
 def indent(spaces, text: str):
@@ -31,9 +33,12 @@ def prepare_cmd(commands: Union[Command, List[Command]]):
     return prepared
 
 
-def prepare_request(commands: List[Command], encoding: str) -> Request:
+def prepare_request(commands: List[Command], encoding: Optional[str] = None) -> Request:
     commands = prepare_cmd(commands)
     request_id = str(uuid.uuid4())
+
+    if not encoding:
+        encoding = eapi.sessions.ENCODING
 
     params: Params = {
         "version": 1,
@@ -50,40 +55,45 @@ def prepare_request(commands: List[Command], encoding: str) -> Request:
     return req
 
 
-def prepare_url(target: Target, transport: str = "http", path="") -> str:
-    """construct the url from path and transport"""
+# def prepare_url(target: Target, transport: Optional[str] = None,
+#         path: Optional[str] = None) -> str:
+#     """construct the url from path and transport"""
 
-    host, port = prepare_target(target)
+#     url = prepare_target(target, transport)
+    
+#     if isinstance(path, str):
+#         if not path.startswith("/"):
+#             path = "/" + path
+#         url += path
 
-    url = "%s://%s" % (transport, host)
-
-    if port is not None and port > 0:
-        url += ":%d" % port
-
-    if not path.startswith("/"):
-        path = "/" + path
-
-    return url + path
+#     return url
 
 
-def prepare_target(target: Target, transport: str = "http") -> StrictTarget:
-    """Normalize target"""
+def prepare_target(target: Target, transport: Optional[str] = None) -> Target:
+    """Normalize targe into a URL"""
 
-    host: str = ""
-    port: Optional[int] = None
+    if isinstance(target, tuple):
+        target = "%s:%d" % target
 
-    if isinstance(target, str):
+    if not transport:
+        transport = eapi.sessions.TRANSPORT
 
-        if ":" in target:
-            host, _port = target.split(":", 2)
-            port = int(_port)
-        else:
-            host = target
-    else:
-        host, port = target
+    if "://" not in target:
+        target = transport + "://" + target
+    target = target.rstrip("/")
+    return target
 
-    return (host, port)
+def get_target_domain(target: Target) -> str:
+    parsed = urlparse(target)
+    dom = parsed.netloc
 
+    if ":" in dom:
+        dom, _ = dom.split(":", 2)
+
+    if "." not in dom:
+        dom = dom + ".local"
+    
+    return dom
 
 def zpad(keys, values, default=None):
     """zips two lits and pads the second to match the first in length"""

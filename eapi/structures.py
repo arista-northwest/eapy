@@ -26,8 +26,8 @@ Request = TypedDict('Request', {
     'params': Params
 }, total=False)
 
-Target = Union[str, Tuple[str, Optional[int]]]
-StrictTarget = Tuple[str, Optional[int]]
+Target = str # Union[str, Tuple[str, int]]
+
 Auth = Tuple[str, Optional[str]]
 
 Certificate = Optional[Union[str, Tuple[str, str]]]
@@ -41,3 +41,4 @@ RequestsOptions = TypedDict('RequestsOptions', {
     'cert': Certificate,
     'verify': bool
 }, total=False)
+

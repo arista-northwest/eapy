@@ -3,21 +3,23 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 import json
-import uuid
 import urllib3
 import warnings
 
+from urllib.parse import urlparse
 from typing import Dict, List, MutableMapping, Optional
-from typing_extensions import Final
 
 import requests
 
-from eapi.util import prepare_request, prepare_target, prepare_url
+#from eapi.constants import ENCODING, SSL_VERIFY, SSL_WARNINGS, TIMEOUT, TRANSPORT
+from eapi.util import get_target_domain, prepare_request, prepare_target
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
     EapiHttpError, EapiTimeoutError
-from eapi.structures import Auth, Command, RequestsOptions, \
-    StrictTarget, Target, Timeout
+from eapi.structures import Auth, Certificate, Command, RequestsOptions, \
+    Target
 from eapi.messages import Response
+
+from eapi.structures import Timeout
 
 # # The default username password for all Aristas is 'admin' with no password
 # AUTH: Auth = ("admin", "")
@@ -27,9 +29,6 @@ ENCODING: str = "json"
 
 # Specifies whether to add timestamps for each command by default
 INCLUDE_TIMESTAMPS: bool = False
-
-# This should not need to change.  All responses are JSON
-SESSION_HEADERS: Final[dict] = {"Content-Type": "application/json"}
 
 # Set this to false to allow untrusted HTTPS/SSL
 SSL_VERIFY: bool = True
@@ -45,6 +44,7 @@ TIMEOUT: Timeout = (5, 30)
 # By default eapi uses HTTP.  HTTPS ('https') is also supported
 TRANSPORT: str = "http"
 
+# PORTS: Dict[str, int] = {"http": 80, "https": 443}
 
 class DisableSslWarnings(object):
     """Context manager to disable then re-enable SSL warnings"""
@@ -54,6 +54,7 @@ class DisableSslWarnings(object):
         self.category = urllib3.exceptions.InsecureRequestWarning
 
     def __enter__(self):
+        
         if not SSL_WARNINGS:
             warnings.simplefilter('ignore', self.category)
 
@@ -63,8 +64,7 @@ class DisableSslWarnings(object):
 
 class EapiSession():
     def __init__(self, transport: str = TRANSPORT,
-                 options: RequestsOptions = {}):
-        # self.target = prepare_target(target)
+                 **options: RequestsOptions):
         self.transport = transport
         self.options = options
 
@@ -75,25 +75,26 @@ class EapiSession():
 
 class EapiSessionStore(MutableMapping):
     def __init__(self):
-        self._data: Dict[StrictTarget, EapiSession] = {}
+        self._data: Dict[str, EapiSession] = {}
 
     def __iter__(self):
         return iter(self._data)
 
     def __getitem__(self, target: Target) -> EapiSession:
-        target = prepare_target(target)
-        return self._data[target]
+        domain = get_target_domain(target)
+        return self._data[domain]
 
     def __setitem__(self, target: Target, eapi_session: EapiSession):
-        target = prepare_target(target)
-        self._data[target] = eapi_session
+        domain = get_target_domain(target)
+        self._data[domain] = eapi_session
 
     def __delitem__(self, target: Target):
-        target = prepare_target(target)
-        del self._data[target]
+        domain = get_target_domain(target)
+        del self._data[domain]
 
     def __len__(self):
         return len(self._data)
+
 
 
 class Session(object):
@@ -102,19 +103,19 @@ class Session(object):
         self._session = requests.Session()
 
         # every request should send the same headers
-        self._session.headers = SESSION_HEADERS
+        # This should not need to change.  All responses are JSON
+        self._session.headers = {"Content-Type": "application/json"}
 
         # store parameters for future requests
         self._eapi_sessions = EapiSessionStore()
 
-    def logged_in(self, target):
+    def logged_in(self, target: Target, transport: Optional[str] = None):
         """determines if session cookie is set"""
-        host, _ = prepare_target(target)
+        target = prepare_target(target)
+        domain = get_target_domain(target)
 
-        if "." not in host:
-            host = host + ".local"
-
-        cookie = self._session.cookies.get("Session", domain=host)
+        cookie = self._session.cookies.get("Session", domain=domain)
+        
         return True if cookie else False
 
     def __enter__(self):
@@ -127,31 +128,41 @@ class Session(object):
         """shutdown the underlying requests session"""
         self._session.close()
 
-    def new(self, target: StrictTarget, auth: Auth, transport: str = TRANSPORT, options: RequestsOptions = {}) -> None:
+    def new(self, target: Target, transport: Optional[str] = None,
+            auth: Optional[Auth] = None, cert: Optional[Certificate] = None,
+            **kwargs) -> None:
         """Create a new eAPI session
 
         :param target: eAPI target (host, port)
-        :param type: StrictTarget
-        :param auth: tuple containing a username and password
-        :param type: Auth
+        :param type: Target
         :param transport: http or https
         :param type: str
-        :param options: pass through `requests` options
+        :param auth: username, password tuple
+        :param type: Auth
+        :param cert: client certificate or (certificate, key) tuple
+        :param type: Certificate
+        :param \*\*options: other pass through `requests` options
         :param type: RequestsOptions
 
-        :
         """
-        if "auth" in options:
-            raise ValueError("please use the `auth` parameter")
+        target = prepare_target(target, transport=transport)
 
-        if "certificate" not in options:
-            self._login(target, auth, transport, options)
+        if auth:
+            if not self._login(target, auth, **kwargs):
+                kwargs["auth"] = auth
+        elif cert:
+            transport = "https"
+            kwargs["cert"] = cert
 
-        self._eapi_sessions[target] = EapiSession(transport, options)
+        if not transport:
+            transport = TRANSPORT
+
+        target = prepare_target(target, transport=transport)
+
+        self._eapi_sessions[target] = EapiSession(transport, **kwargs)
     login = new
 
-    def _login(self, target: Target, auth: Auth,
-               transport: str = TRANSPORT, options: RequestsOptions = {}) -> bool:
+    def _login(self, target: Target, auth, **kwargs) -> bool:
         """Session based authentication"""
 
         if self.logged_in(target):
@@ -160,14 +171,12 @@ class Session(object):
         username, password = auth
         payload = {"username": username, "password": password}
 
-        url = prepare_url(target, transport, "/login")
-
-        resp = self._send(url, data=payload, options=options)
+        resp = self._send(target + "/login", data=payload, **kwargs)
 
         if resp.status_code == 404:
             # fall back to basic auth if /login is not found or Session key is
             # missing
-            pass
+            return False
         elif not resp.ok:
             raise EapiError(resp.reason)
 
@@ -182,20 +191,23 @@ class Session(object):
 
         return True
 
-    def close(self, target: Target):
+    def close(self, target: Target, transport: Optional[str] = None):
         """destroys the session"""
 
-        transport, options = self._eapi_sessions.get(target).params
+        target = prepare_target(target, transport=transport)
+        
+        _, options = self._eapi_sessions.get(target).params
 
         if self.logged_in(target):
-            url = prepare_url(target, transport, "/logout")
-            self._send(url, data={}, options=options)
+            self._send(target + "/logout", data={}, **options)
+    
     logout = close
 
     def send(self, target: Target, commands: List[Command],
-             encoding: str = ENCODING,
-             transport: str = "",
-             options: RequestsOptions = {}):
+            encoding: str = ENCODING, transport: Optional[str] = None,
+            **options: RequestsOptions):
+
+        target = prepare_target(target, transport=transport)
 
         # get session defaults (set at login)
         _transport, _options = self._eapi_sessions.get(target).params
@@ -207,17 +219,12 @@ class Session(object):
         options = _options
 
         request = prepare_request(commands, encoding)
-        url = prepare_url(target, transport, "/command-api")
 
-        if not self.logged_in(target):
-            if "auth" not in options:
-                options["auth"] = AUTH
-
-        response = self._send(url, data=request, options=options)
+        response = self._send(target + "/command-api", data=request, **options)
 
         return Response.from_rpc_response(target, request, response.json())
 
-    def _send(self, url, data, options: RequestsOptions = {}):
+    def _send(self, url, data, **options):
         """Sends the request to EAPI"""
 
         response = None

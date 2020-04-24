@@ -11,6 +11,7 @@ import eapi
 
 from eapi.structures import Certificate, Request
 from eapi.util import prepare_request
+
 EAPI_TARGET = os.environ.get('EAPI_TARGET', "")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
 EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")

@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
-from typing import List, NoReturn
+from typing import List, Optional
 
 from eapi.structures import Target, Auth, Command
 from eapi.messages import Response
 from eapi import session
 
 
-def new(target: Target, auth: Auth, **kwargs) -> None:
+def new(target: Target, auth: Auth, transport: Optional[str] = None,
+        **kwargs) -> None:
     """Create an eAPI session
 
     :param target: eAPI target 
@@ -17,10 +18,10 @@ def new(target: Target, auth: Auth, **kwargs) -> None:
     :param type: Auth
     :param transport: http or https (default: http)
     :param type: str
-    :param options: pass through `requests` options
+    :param \*\*options: pass through `requests` options
     :param type: RequestsOptions
     """
-    session.new(target, auth=auth, **kwargs)
+    session.new(target, auth=auth, transport=transport, **kwargs)
 
 
 login = new
@@ -33,7 +34,7 @@ def close(target: Target, **kwargs):
     :param type: Target
     :param transport: http or https (default: http)
     :param type: str
-    :param options: pass through `requests` options
+    :param \*\*kwargs: pass through `requests` options
     :param type: RequestsOptions
     """
     session.logout(target, **kwargs)
@@ -42,7 +43,9 @@ def close(target: Target, **kwargs):
 logout = close
 
 
-def execute(target: Target, commands: List[Command], **kwargs) -> Response:
+def execute(target: Target, commands: List[Command],
+        encoding: Optional[str] = None, transport: Optional[str] = None,
+        **kwargs) -> Response:
     """Send an eAPI request
 
     :param target: eAPI target 
@@ -55,7 +58,7 @@ def execute(target: Target, commands: List[Command], **kwargs) -> Response:
     :param type: str
     :param timestamps: Include command timestamps (default: False)
     :param type: bool
-    :param options: pass through `requests` options
+    :param \*\*kwargs: pass through `requests` options
     :param type: RequestsOptions
 
     :return: :class:`Response <Response>` object

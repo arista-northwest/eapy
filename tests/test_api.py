@@ -12,7 +12,6 @@ pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
 eapi.SSL_WARNINGS = False
 
-
 @pytest.fixture(autouse=True)
 def login(target, auth):
     eapi.login(target, auth)
@@ -24,7 +23,8 @@ def test_login(target):
 def test_execute(target, commands):
     eapi.execute(target, commands=commands)
 
-
+def test_enable(target, commands):
+    eapi.enable(target, commands=commands, secret="s3cr3t")
 
 def test_execute_text(target, commands):
     eapi.execute(target, commands=commands, encoding="text")
@@ -59,4 +59,4 @@ def test_configure(target):
 
 
 def test_logout(target):
-    eapi.logout(target)
+    eapi.close(target)

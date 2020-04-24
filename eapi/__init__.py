@@ -4,8 +4,8 @@
 
 __version__ = '0.5.0'
 
-from eapi.session import ENCODING, INCLUDE_TIMESTAMPS, SSL_VERIFY, \
-                         SSL_WARNINGS, TIMEOUT
+# from eapi.constants import ENCODING, INCLUDE_TIMESTAMPS, SSL_VERIFY, \
+#                          SSL_WARNINGS, TIMEOUT
 
-from eapi.session import Session, session
-from eapi.api import configure, execute, login, logout
+from eapi.sessions import Session, session
+from eapi.api import configure, enable, execute, login, logout, new, close

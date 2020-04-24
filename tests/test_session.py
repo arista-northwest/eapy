@@ -1,5 +1,14 @@
 
-from eapi.session import session
+from eapi.sessions import session
 import eapi
 
-eapi.AUTH = ("h4ck3r", "p4ss0rd")
+eapi.sessions.SSL_WARNINGS = False
+
+def test_session_new(target):
+
+    session.new(target, auth=("ops", "ops"))
+
+
+def test_session_ssl(target, certificate):
+    session.new(target, cert=certificate, verify=False)
+    session.send(target, ["show users"])
