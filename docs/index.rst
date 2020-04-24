@@ -10,10 +10,17 @@ Welcome to eAPI-py's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-.. automodule:: eapi
+API
+---
+
+.. automodule:: eapi.api
     :inherited-members:
 
+Session
+-------
 
+.. automodule:: eapi.session
+    :inherited-members:
 
 Indices and tables
 ==================

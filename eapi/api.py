@@ -69,7 +69,7 @@ def execute(target: Target, commands: List[Command], **kwargs) -> Response:
 
 def enable(target: Target, commands: List[Command], secret: str = "",
            **kwargs) -> Response:
-    r"""Prepend 'enable' command
+    """Prepend 'enable' command
     :param target: eAPI target 
     :param type: Target
     :param commmands: List of commands to send to target
@@ -84,7 +84,7 @@ def enable(target: Target, commands: List[Command], secret: str = "",
 
 
 def configure(target: Target, commands: List[Command], **kwargs) -> Response:
-    r"""Wrap commands in a 'configure'/'end' block
+    """Wrap commands in a 'configure'/'end' block
 
     :param target: eAPI target 
     :param type: Target
