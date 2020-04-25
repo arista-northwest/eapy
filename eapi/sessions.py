@@ -10,10 +10,9 @@ from typing import Dict, List, Optional, Union
 
 import requests
 
-#from eapi.constants import ENCODING, SSL_VERIFY, SSL_WARNINGS, TIMEOUT, TRANSPORT
 from eapi.util import prepare_request
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
-    EapiHttpError, EapiTimeoutError
+                            EapiHttpError, EapiTimeoutError
 from eapi.structures import Auth, Certificate, Command
 
 from eapi.messages import Response, Target
@@ -169,7 +168,7 @@ class Session(object):
         :param type: Target
         :param commands: List of `Command` objects
         :param type: list
-        :param encoding: set response encoding 'json' or 'text' (default: json)
+        :param encoding: response encoding 'json' or 'text' (default: json)
         :param \*\*kwargs: other pass through `requests` options
         :param type: dict
 
