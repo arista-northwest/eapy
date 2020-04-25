@@ -6,8 +6,7 @@ import json
 import urllib3
 import warnings
 
-from urllib.parse import urlparse
-from typing import Dict, List, MutableMapping, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import requests
 

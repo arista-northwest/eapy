@@ -3,12 +3,12 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 from typing import List, Optional
 
-from eapi.structures import Target, Auth, Certificate, Command
+from eapi.structures import Auth, Certificate, Command
 from eapi.messages import Response
 from eapi import session
 
 
-def new(target: Target, auth: Optional[Auth] = None, cert: Optional[Certificate] = None,
+def new(target: str, auth: Optional[Auth] = None, cert: Optional[Certificate] = None,
         **kwargs) -> None:
     """Create an eAPI session
 
@@ -27,7 +27,7 @@ def new(target: Target, auth: Optional[Auth] = None, cert: Optional[Certificate]
 login = new
 
 
-def close(target: Target, **kwargs):
+def close(target: str, **kwargs):
     """End an eAPI session
 
     :param target: eAPI target 
@@ -43,7 +43,7 @@ def close(target: Target, **kwargs):
 logout = close
 
 
-def execute(target: Target, commands: List[Command],
+def execute(target: str, commands: List[Command],
             encoding: Optional[str] = None, **kwargs) -> Response:
     """Send an eAPI request
 
@@ -69,7 +69,7 @@ def execute(target: Target, commands: List[Command],
     return response
 
 
-def enable(target: Target, commands: List[Command], secret: str = "",
+def enable(target: str, commands: List[Command], secret: str = "",
            **kwargs) -> Response:
     """Prepend 'enable' command
     :param target: eAPI target 
@@ -85,7 +85,7 @@ def enable(target: Target, commands: List[Command], secret: str = "",
     return execute(target, commands=commands, **kwargs)
 
 
-def configure(target: Target, commands: List[Command], **kwargs) -> Response:
+def configure(target: str, commands: List[Command], **kwargs) -> Response:
     """Wrap commands in a 'configure'/'end' block
 
     :param target: eAPI target 

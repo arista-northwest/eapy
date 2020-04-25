@@ -26,7 +26,6 @@ Request = TypedDict('Request', {
     'params': Params
 }, total=False)
 
-Target = str  # Union[str, Tuple[str, int]]
 
 Auth = Tuple[str, Optional[str]]
 
