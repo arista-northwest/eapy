@@ -12,7 +12,7 @@ import requests
 
 from eapi.util import prepare_request
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
-                            EapiHttpError, EapiTimeoutError
+    EapiHttpError, EapiTimeoutError
 from eapi.structures import Auth, Certificate, Command
 
 from eapi.messages import Response, Target
@@ -83,37 +83,6 @@ class Session(object):
     def __exit__(self, *args):
         self.shutdown()
 
-    def shutdown(self):
-        """shutdown the underlying requests session"""
-        self._session.close()
-
-    def new(self, target: Union[str, Target], auth: Optional[Auth] = None,
-            cert: Optional[Certificate] = None, **kwargs) -> None:
-        """Create a new eAPI session
-
-        :param target: eAPI target (host, port)
-        :param type: Target
-        :param auth: username, password tuple
-        :param type: Auth
-        :param cert: client certificate or (certificate, key) tuple
-        :param type: Certificate
-        :param \*\*options: other pass through `requests` options
-        :param type: RequestsOptions
-
-        """
-        target_: Target = Target.from_string(target)
-
-        if auth:
-            if not self._login(target_, auth, **kwargs):
-                # store auth if login fails (without throwing anm exception)
-                kwargs["auth"] = auth
-        elif cert:
-            kwargs["cert"] = cert
-
-        self._eapi_sessions[target_.domain] = kwargs
-
-    login = new
-
     def _login(self, target: Target, auth, **kwargs) -> bool:
 
         if self.logged_in(target):
@@ -143,6 +112,35 @@ class Session(object):
 
         return True
 
+    def _send(self, url, data, **options):
+        """Sends the request to EAPI"""
+
+        response = None
+
+        if "verify" not in options:
+            options["verify"] = SSL_VERIFY
+
+        if "timeout" not in options:
+            options["timeout"] = TIMEOUT
+
+        try:
+            with DisableSslWarnings():
+                response = self._session.post(url, data=json.dumps(data),
+                                              **options)
+        except requests.Timeout as exc:
+            raise EapiTimeoutError(str(exc))
+        except requests.ConnectionError as exc:
+            raise EapiError(str(exc))
+
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as exc:
+            if response.status_code == 401:
+                raise EapiAuthenticationFailure(str(exc))
+            raise EapiHttpError(str(exc))
+
+        return response
+
     def close(self, target: Union[str, Target]) -> None:
         """Create a new eAPI session
 
@@ -159,6 +157,33 @@ class Session(object):
             self._send(target_.url + "/logout", data={}, **options)
 
     logout = close
+
+    def new(self, target: Union[str, Target], auth: Optional[Auth] = None,
+            cert: Optional[Certificate] = None, **kwargs) -> None:
+        """Create a new eAPI session
+
+        :param target: eAPI target (host, port)
+        :param type: Target
+        :param auth: username, password tuple
+        :param type: Auth
+        :param cert: client certificate or (certificate, key) tuple
+        :param type: Certificate
+        :param \*\*options: other pass through `requests` options
+        :param type: RequestsOptions
+
+        """
+        target_: Target = Target.from_string(target)
+
+        if auth:
+            if not self._login(target_, auth, **kwargs):
+                # store auth if login fails (without throwing anm exception)
+                kwargs["auth"] = auth
+        elif cert:
+            kwargs["cert"] = cert
+
+        self._eapi_sessions[target_.domain] = kwargs
+
+    login = new
 
     def send(self, target: Union[str, Target], commands: List[Command],
              encoding: str = ENCODING, **kwargs):
@@ -189,34 +214,9 @@ class Session(object):
 
         return Response.from_rpc_response(target_, request, response.json())
 
-    def _send(self, url, data, **options):
-        """Sends the request to EAPI"""
-
-        response = None
-
-        if "verify" not in options:
-            options["verify"] = SSL_VERIFY
-
-        if "timeout" not in options:
-            options["timeout"] = TIMEOUT
-
-        try:
-            with DisableSslWarnings():
-                response = self._session.post(url, data=json.dumps(data),
-                                              **options)
-        except requests.Timeout as exc:
-            raise EapiTimeoutError(str(exc))
-        except requests.ConnectionError as exc:
-            raise EapiError(str(exc))
-
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as exc:
-            if response.status_code == 401:
-                raise EapiAuthenticationFailure(str(exc))
-            raise EapiHttpError(str(exc))
-
-        return response
+    def shutdown(self):
+        """shutdown the underlying requests session"""
+        self._session.close()
 
 
 # session singleton(ish)

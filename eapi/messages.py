@@ -2,10 +2,10 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 import re
-from pprint import pformat
-from collections import namedtuple
+
 from collections.abc import Mapping
-from typing import List, Union, Optional, Tuple
+from pprint import pformat
+from typing import List, Union, Optional
 from typing_extensions import TypedDict
 
 import eapi.sessions
@@ -13,81 +13,15 @@ from eapi.structures import Command
 
 from eapi.util import zpad, indent
 
+_TRANSPORTS = {"http": 80, "https": 443}
+_TARGET_RE = re.compile(r"^(?:(?P<transport>\w+)\:\/\/)?"
+                        r"(?P<hostname>[\w+\-\.]+)(?:\:"
+                        r"(?P<port>\d+))?/*?$")
+
 Error = TypedDict('Error', {
     'code': int,
     'message': str
 })
-
-
-class Target(object):
-
-    _TRANSPORTS = {"http": 80, "https": 443}
-    _TARGET_RE = re.compile(r"^(?:(?P<transport>\w+)\:\/\/)?"
-                            r"(?P<hostname>[\w+\-\.]+)(?:\:"
-                            r"(?P<port>\d+))?/*?$")
-
-    def __init__(self, hostname, transport: Optional[str],
-                 port: Optional[int]):
-        self.hostname = hostname
-
-        if not transport:
-            transport = eapi.sessions.TRANSPORT
-        elif transport not in self._TRANSPORTS.keys():
-            raise ValueError("transport must be 'http(s)' not %s" % transport)
-
-        self.transport = transport
-
-        self.port = port or 0
-
-    def __str__(self):
-        return self.url
-
-    @property
-    def domain(self):
-        domain = self.hostname
-        if "." not in domain:
-            domain += ".local"
-        return domain
-
-    @property
-    def url(self):
-        default_port = self._TRANSPORTS[self.transport]
-        url = "%s://%s" % (self.transport, self.hostname)
-
-        if self.port > 0 and self.port != default_port:
-            url += ":%d" % self.port
-
-        return url
-
-    @classmethod
-    def from_string(cls, target: Union[str, 'Target']):
-        if isinstance(target, Target):
-            return target
-
-        match = cls._TARGET_RE.search(target)
-
-        if not match:
-            raise ValueError("Invalid target: %s" % target)
-
-        transport = match.group("transport")
-        hostname = match.group("hostname")
-
-        port = match.group("port")
-        port = int(port) if port else None
-
-        return cls(hostname, transport, port)
-
-
-class TextResult(object):
-    def __init__(self, result: str):
-        self._data = result.strip()
-
-    def __str__(self):
-        return self._data
-
-    @property
-    def pretty(self):
-        return self._data
 
 
 class JsonResult(Mapping):
@@ -109,6 +43,17 @@ class JsonResult(Mapping):
     @property
     def pretty(self):
         return pformat(self._data)
+
+class TextResult(object):
+    def __init__(self, result: str):
+        self._data = result.strip()
+
+    def __str__(self):
+        return self._data
+
+    @property
+    def pretty(self):
+        return self._data
 
 
 class ResponseElem(object):
@@ -223,3 +168,57 @@ class Response(object):
             elements.append(elem)
 
         return cls(target, elements, error)
+
+
+class Target(object):
+
+    def __init__(self, hostname, transport: Optional[str],
+                 port: Optional[int]):
+        self.hostname = hostname
+
+        if not transport:
+            transport = eapi.sessions.TRANSPORT
+        elif transport not in _TRANSPORTS.keys():
+            raise ValueError("transport must be 'http(s)' not %s" % transport)
+
+        self.transport = transport
+
+        self.port = port or 0
+
+    def __str__(self):
+        return self.url
+
+    @property
+    def domain(self):
+        domain = self.hostname
+        if "." not in domain:
+            domain += ".local"
+        return domain
+
+    @property
+    def url(self):
+        default_port = _TRANSPORTS[self.transport]
+        url = "%s://%s" % (self.transport, self.hostname)
+
+        if self.port > 0 and self.port != default_port:
+            url += ":%d" % self.port
+
+        return url
+
+    @classmethod
+    def from_string(cls, target: Union[str, 'Target']):
+        if isinstance(target, Target):
+            return target
+
+        match = _TARGET_RE.search(target)
+
+        if not match:
+            raise ValueError("Invalid target: %s" % target)
+
+        transport = match.group("transport")
+        hostname = match.group("hostname")
+
+        port = match.group("port")
+        port = int(port) if port else None
+
+        return cls(hostname, transport, port)
