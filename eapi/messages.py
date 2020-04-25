@@ -16,7 +16,7 @@ from eapi.util import zpad, indent
 _TRANSPORTS = {"http": 80, "https": 443}
 _TARGET_RE = re.compile(r"^(?:(?P<transport>\w+)\:\/\/)?"
                         r"(?P<hostname>[\w+\-\.]+)(?:\:"
-                        r"(?P<port>\d+))?/*?$")
+                        r"(?P<port>\d{,5}))?/*?$")
 
 Error = TypedDict('Error', {
     'code': int,
@@ -151,7 +151,7 @@ class Response(object):
 
         if errored:
             # dump the errored output
-            results = errored["data"]
+            results = errored.get("data", [])
             code = errored["code"]
             message = errored["message"]
             error = {"code": code, "message": message}
@@ -183,7 +183,10 @@ class Target(object):
 
         self.transport = transport
 
-        self.port = port or 0
+        if isinstance(port, int) and (port < 1 or port > 65535):
+            raise ValueError("port must be > 0 and <= 65535")
+        
+        self.port = port
 
     def __str__(self):
         return self.url
@@ -200,7 +203,7 @@ class Target(object):
         default_port = _TRANSPORTS[self.transport]
         url = "%s://%s" % (self.transport, self.hostname)
 
-        if self.port > 0 and self.port != default_port:
+        if self.port and self.port != default_port:
             url += ":%d" % self.port
 
         return url

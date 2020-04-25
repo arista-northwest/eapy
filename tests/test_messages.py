@@ -2,8 +2,9 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-from tests.conftest import text_response
-from eapi.messages import Response, ResponseElem, TextResult, JsonResult
+import pytest
+
+from eapi.messages import Response, ResponseElem, Target, TextResult, JsonResult
 
 def test_text_result(text_response):
     r = TextResult(text_response[-1]["result"][1]["output"])
@@ -67,4 +68,32 @@ def test_errored_text_response(errored_text_response):
     for elem in resp:
         assert isinstance(elem, ResponseElem)
 
+
+def test_target(target, starget):
+
+    t = Target.from_string(target)
+    t = Target.from_string(t)
+    assert str(t).startswith("http:")
+    t = Target.from_string(starget)
+    assert str(t).startswith("https:")
+
+    with pytest.raises(ValueError):
+        t = Target.from_string(":///_10:600000")
+
+
+    t = Target("host.lab", "http", 80)
+    assert str(t) == "http://host.lab"
+
+    assert t.domain == "host.lab"
+
+    t = Target("host", "http", 8080)
+    assert str(t) == "http://host:8080"
+
+    assert t.domain == "host.local"
+
+    with pytest.raises(ValueError):
+        Target("host", transport="bogus", port=6000)
+
+    with pytest.raises(ValueError):
+        Target("host", transport="http", port=600000)
 

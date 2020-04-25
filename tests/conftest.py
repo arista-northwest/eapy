@@ -11,6 +11,7 @@ from eapi.structures import Certificate, Request
 from eapi.util import prepare_request
 
 EAPI_TARGET = os.environ.get('EAPI_TARGET', "")
+EAPI_STARGET = os.environ.get('EAPI_STARGET', "")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
 EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
@@ -22,10 +23,18 @@ def target():
 
 @pytest.fixture
 def starget(target):
-    _, hostname, _ = _TARGET_RE.match(target).groups()
-
-    return "https://%s" % hostname
-
+    port = None
+    
+    if EAPI_STARGET:
+        _, hostname, port = _TARGET_RE.match(EAPI_STARGET).groups()
+    else:
+        _, hostname, _ = _TARGET_RE.match(target).groups()
+    
+    starget = "https://%s" % hostname
+    if port:
+       starget += ":%d" % int(port) 
+    
+    return starget
 
 @pytest.fixture
 def auth():
@@ -157,3 +166,16 @@ def errored_text_response():
     }
 
     return "localhost", request, response
+
+@pytest.fixture()
+def jsonrpcerr_response():
+    response = {
+        'jsonrpc': '2.0',
+        'id': None,
+        'error': {
+            'message': "Expected field 'jsonrpc' not specified", 
+            'code': -32600
+        }
+    }
+
+    return "localhost", None, response

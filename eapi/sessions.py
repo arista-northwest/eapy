@@ -94,8 +94,7 @@ class Session(object):
         resp = self._send(target.url + "/login", data=payload, **kwargs)
 
         if resp.status_code == 404:
-            # fall back to basic auth if /login is not found or Session key is
-            # missing
+            # fall back to basic auth if /login is not found
             return False
         elif not resp.ok:
             raise EapiError(resp.reason)
@@ -127,8 +126,8 @@ class Session(object):
             with DisableSslWarnings():
                 response = self._session.post(url, data=json.dumps(data),
                                               **options)
-        except requests.Timeout as exc:
-            raise EapiTimeoutError(str(exc))
+        # except requests.Timeout as exc:
+        #     raise EapiTimeoutError(str(exc))
         except requests.ConnectionError as exc:
             raise EapiError(str(exc))
 
@@ -149,9 +148,12 @@ class Session(object):
 
         """
 
+        options = {}
         target_: Target = Target.from_string(target)
-
-        options = self._eapi_sessions.get(target_.domain)
+        
+        if target_.domain in self._eapi_sessions:
+            options = self._eapi_sessions[target_.domain]
+            del self._eapi_sessions[target_.domain]
 
         if self.logged_in(target):
             self._send(target_.url + "/logout", data={}, **options)
@@ -202,7 +204,7 @@ class Session(object):
         target_: Target = Target.from_string(target)
 
         # get session defaults (set at login)
-        _options = self._eapi_sessions.get(target_.domain)
+        _options = self._eapi_sessions.get(target_.domain) or {}
 
         _options.update(kwargs)
         options = _options
