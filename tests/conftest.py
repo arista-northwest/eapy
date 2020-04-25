@@ -1,14 +1,12 @@
 
 import os
 import sys
-import uuid
-
+import re
 import pytest
 
 sys.path.insert(0, os.path.abspath("."))
 
-import eapi
-
+from eapi.messages import _TARGET_RE
 from eapi.structures import Certificate, Request
 from eapi.util import prepare_request
 
@@ -21,6 +19,13 @@ EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 @pytest.fixture
 def target():
     return EAPI_TARGET
+
+@pytest.fixture
+def starget(target):
+    _, hostname, _ = _TARGET_RE.match(target).groups()
+
+    return "https://%s" % hostname
+
 
 @pytest.fixture
 def auth():
