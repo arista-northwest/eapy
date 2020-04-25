@@ -20,8 +20,6 @@ from eapi.messages import Response, Target
 
 from eapi.structures import Timeout
 
-# # The default username password for all Aristas is 'admin' with no password
-# AUTH: Auth = ("admin", "")
 
 # Specifies the default result encoding.  The alternative is 'text'
 ENCODING: str = "json"
@@ -42,8 +40,6 @@ TIMEOUT: Timeout = (5, 30)
 
 # By default eapi uses HTTP.  HTTPS ('https') is also supported
 TRANSPORT: str = "http"
-
-# PORTS: Dict[str, int] = {"http": 80, "https": 443}
 
 
 class DisableSslWarnings(object):
@@ -145,7 +141,7 @@ class Session(object):
             warnings.warn("Got cookie Session='None' in response?! "
                           "Using fallback auth.")
             return False
-        
+
         return True
 
     def close(self, target: Union[str, Target]) -> None:
