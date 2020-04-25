@@ -9,8 +9,8 @@ from eapi.messages import Response
 from eapi import session
 
 
-def new(target: str, auth: Optional[Auth] = None, cert: Optional[Certificate] = None,
-        **kwargs) -> None:
+def new(target: str, auth: Optional[Auth] = None,
+        cert: Optional[Certificate] = None, **kwargs) -> None:
     """Create an eAPI session
 
     :param target: eAPI target 

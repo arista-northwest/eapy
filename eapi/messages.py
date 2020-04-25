@@ -22,17 +22,18 @@ Error = TypedDict('Error', {
 class Target(object):
 
     _TRANSPORTS = {"http": 80, "https": 443}
-    _TARGET_RE = re.compile(
-        r"^(?:(?P<transport>\w+)\:\/\/)?(?P<hostname>[\w+\-\.]+)(?:\:(?P<port>\d+))?/*?$")
+    _TARGET_RE = re.compile(r"^(?:(?P<transport>\w+)\:\/\/)?"
+                            r"(?P<hostname>[\w+\-\.]+)(?:\:"
+                            r"(?P<port>\d+))?/*?$")
 
-    def __init__(self, hostname, transport: Optional[str], port: Optional[int]):
+    def __init__(self, hostname, transport: Optional[str],
+                 port: Optional[int]):
         self.hostname = hostname
 
         if not transport:
             transport = eapi.sessions.TRANSPORT
         elif transport not in self._TRANSPORTS.keys():
-            raise ValueError(
-                "transport must be 'http' or 'https' not %s" % transport)
+            raise ValueError("transport must be 'http(s)' not %s" % transport)
 
         self.transport = transport
 
@@ -111,7 +112,8 @@ class JsonResult(Mapping):
 
 
 class ResponseElem(object):
-    def __init__(self, command: Command, result: Union[TextResult, JsonResult]):
+    def __init__(self, command: Command,
+                 result: Union[TextResult, JsonResult]):
         self._command = command
 
         if isinstance(self._command, str):
@@ -140,7 +142,8 @@ class ResponseElem(object):
 
 class Response(object):
 
-    def __init__(self, target, elements: List[ResponseElem], error: Error = None):
+    def __init__(self, target, elements: List[ResponseElem],
+                 error: Error = None):
         self._target = target
         self.elements = elements
         self.error = error
