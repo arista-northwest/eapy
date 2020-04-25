@@ -63,35 +63,6 @@ class DisableSslWarnings(object):
         warnings.simplefilter('default', self.category)
 
 
-# class EapiSession():
-#     def __init__(self, options: RequestsOptions):
-#         self._options = options
-
-#     @property
-#     def params(self) -> tuple:
-#         return self._options
-
-
-# class EapiSessionStore(MutableMapping):
-#     def __init__(self):
-#         self._data: Dict[str, EapiSession] = {}
-
-#     def __iter__(self):
-#         return iter(self._data)
-
-#     def __getitem__(self, domain: str) -> EapiSession:
-#         return self._data[domain]
-
-#     def __setitem__(self, domain: str, options):
-#         self._data[domain] = options
-
-#     def __delitem__(self, domain: str):
-#         del self._data[domain]
-
-#     def __len__(self):
-#         return len(self._data)
-
-
 class Session(object):
     def __init__(self):
         # use a requests Session to manage state
@@ -140,27 +111,24 @@ class Session(object):
 
         if auth:
             if not self._login(target_, auth, **kwargs):
+                # store auth if login fails (without throwing anm exception)
                 kwargs["auth"] = auth
         elif cert:
-            transport = "https"
             kwargs["cert"] = cert
 
         self._eapi_sessions[target_.domain] = kwargs
 
     login = new
 
-    def _login(self, target: Union[str, Target], auth, **kwargs) -> bool:
-        """Session based authentication"""
+    def _login(self, target: Target, auth, **kwargs) -> bool:
 
-        target_: Target = Target.from_string(target)
-
-        if self.logged_in(target_):
+        if self.logged_in(target):
             return True
 
         username, password = auth
         payload = {"username": username, "password": password}
 
-        resp = self._send(target_.url + "/login", data=payload, **kwargs)
+        resp = self._send(target.url + "/login", data=payload, **kwargs)
 
         if resp.status_code == 404:
             # fall back to basic auth if /login is not found or Session key is
@@ -172,43 +140,60 @@ class Session(object):
         if "Session" not in resp.cookies:
             warnings.warn(("Got a good response, but no 'Session' found in "
                            "cookies. Using fallback auth."))
-
+            return False
         elif resp.cookies["Session"] == "None":
             # this is weird... investigate further
             warnings.warn("Got cookie Session='None' in response?! "
                           "Using fallback auth.")
-
+            return False
+        
         return True
 
-    def close(self, target: Union[str, Target]):
-        """destroys the session"""
+    def close(self, target: Union[str, Target]) -> None:
+        """Create a new eAPI session
 
-        target: Target = Target.from_string(target)
+        :param target: eAPI target (host, port)
+        :param type: Target
 
-        options = self._eapi_sessions.get(target.domain)
+        """
+
+        target_: Target = Target.from_string(target)
+
+        options = self._eapi_sessions.get(target_.domain)
 
         if self.logged_in(target):
-            self._send(target.url + "/logout", data={}, **options)
+            self._send(target_.url + "/logout", data={}, **options)
 
     logout = close
 
     def send(self, target: Union[str, Target], commands: List[Command],
              encoding: str = ENCODING, **kwargs):
+        """Send commands to an eAPI target
 
-        target: Target = Target.from_string(target)
+        :param target: eAPI target (host, port)
+        :param type: Target
+        :param commands: List of `Command` objects
+        :param type: list
+        :param encoding: set response encoding 'json' or 'text' (default: json)
+        :param \*\*kwargs: other pass through `requests` options
+        :param type: dict
+
+        """
+
+        target_: Target = Target.from_string(target)
 
         # get session defaults (set at login)
-        _options = self._eapi_sessions.get(target.domain)
+        _options = self._eapi_sessions.get(target_.domain)
 
         _options.update(kwargs)
         options = _options
 
         request = prepare_request(commands, encoding)
 
-        response = self._send(target.url + "/command-api",
+        response = self._send(target_.url + "/command-api",
                               data=request, **options)
 
-        return Response.from_rpc_response(target, request, response.json())
+        return Response.from_rpc_response(target_, request, response.json())
 
     def _send(self, url, data, **options):
         """Sends the request to EAPI"""
