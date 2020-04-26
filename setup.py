@@ -7,7 +7,7 @@ import os
 import re
 from setuptools import setup
 
-with io.open('eapi.py', 'rt', encoding='utf8') as f:
+with io.open('eapi/__init__.py', 'rt', encoding='utf8') as f:
     version = re.search(r'__version__ = \"(.*?)\"', f.read()).group(1)
 
 setup(
@@ -16,8 +16,7 @@ setup(
     py_modules=['eapi'],
     install_requires=[
         'requests>=2.18.4',
-        'typing-extensions>=3.7.4.2',
-        'PyYAML>=5.3.1'
+        'typing-extensions>=3.7.4.2'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
