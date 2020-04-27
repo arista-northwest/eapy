@@ -13,7 +13,6 @@ with io.open('eapi/__init__.py', 'rt', encoding='utf8') as f:
 setup(
     name='eapi-py',
     version=version,
-    py_modules=['eapi'],
     install_requires=[
         'requests>=2.18.4',
         'typing-extensions>=3.7.4.2'
