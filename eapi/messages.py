@@ -85,7 +85,7 @@ class ResponseElem(object):
         return str(self.result)
 
 
-class Response(object):
+class Response(Mapping):
 
     def __init__(self, target, elements: List[ResponseElem],
                  error: Error = None):
@@ -96,9 +96,14 @@ class Response(object):
     def __contains__(self, name):
         return name in self.__str__()
 
+    def __getitem__(self, item):
+        return self.elements[item]
+
     def __iter__(self):
         return iter(self.elements)
 
+    def __len__(self):
+        return len(self.elements)
     @property
     def code(self):
         return self.error.get("code", 0)

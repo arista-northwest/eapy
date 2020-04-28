@@ -2,12 +2,17 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-from typing import List, Optional
+import math
+import re
+import time
+
+from typing import Callable, List, Optional
 
 from eapi.structures import Auth, Certificate, Command
 from eapi.messages import Response
 from eapi import session
 
+NEVER_RE = r'(?!x)x'
 
 def new(target: str, auth: Optional[Auth] = None,
         cert: Optional[Certificate] = None, **kwargs) -> None:
@@ -33,19 +38,17 @@ def close(target: str, **kwargs):
 
     :param target: eAPI target 
     :param type: Target
-    :param transport: http or https (default: http)
-    :param type: str
     :param \*\*kwargs: pass through `requests` options
     :param type: RequestsOptions
     """
-    session.logout(target, **kwargs)
+    session.close(target, **kwargs)
 
 
 logout = close
 
 
 def execute(target: str, commands: List[Command],
-            encoding: Optional[str] = None, **kwargs) -> Response:
+        encoding: Optional[str] = None, **kwargs) -> Response:
     """Send an eAPI request
 
     :param target: eAPI target 
@@ -54,10 +57,6 @@ def execute(target: str, commands: List[Command],
     :param type: list
     :param encoding: json or text (default: json)
     :param type: str
-    :param transport: http or https (default: http)
-    :param type: str
-    :param timestamps: Include command timestamps (default: False)
-    :param type: bool
     :param \*\*kwargs: pass through `requests` options
     :param type: RequestsOptions
 
@@ -65,39 +64,96 @@ def execute(target: str, commands: List[Command],
     :rtype: eapi.messages.Response
     """
 
-    response = session.send(target, commands, **kwargs)
+    response = session.send(target, commands, encoding, **kwargs)
 
     return response
 
 
 def enable(target: str, commands: List[Command], secret: str = "",
-           **kwargs) -> Response:
+        encoding: Optional[str] = None, **kwargs) -> Response:
     """Prepend 'enable' command
     :param target: eAPI target 
     :param type: Target
     :param commmands: List of commands to send to target
     :param type: list
+    :param encoding: json or text (default: json)
+    :param type: str
     :param \*\*kwargs: Optional arguments that ``execute`` takes.
 
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
     commands.insert(0, {"cmd": "enable", "input": secret})
-    return execute(target, commands=commands, **kwargs)
+    return execute(target, commands, encoding, **kwargs)
 
 
-def configure(target: str, commands: List[Command], **kwargs) -> Response:
+def configure(target: str, commands: List[Command],
+        encoding: Optional[str] = None, **kwargs) -> Response:
     """Wrap commands in a 'configure'/'end' block
 
     :param target: eAPI target 
     :param type: Target
     :param commmands: List of commands to send to target
     :param type: list
-    :param \*\*kwargs: Optional arguments that ``session.send`` takes.
+    :param encoding: json or text (default: json)
+    :param type: str
+    :param \*\*kwargs: Optional arguments that ``execute`` takes.
 
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
     commands.insert(0, "configure")
     commands.append("end")
-    return execute(target, commands=commands, **kwargs)
+    return execute(target, commands, encoding, **kwargs)
+
+def watch(target: str,
+        commands: List[Command],
+        encoding: Optional[str] = None,
+        interval: int = 5,
+        deadline: float = math.inf,
+        exclude: bool = False,
+        condition: str = NEVER_RE,
+        callback: Optional[Callable] = None,
+        **kwargs) -> bool:
+    """Watch a command until deadline or condition matches
+
+    :param target: eAPI target 
+    :param type: Target
+    :param commmands: List of commands to send to target
+    :param type: list
+    :param encoding: json or text (default: json)
+    :param type: str
+    :param interval: time between repeating command
+    :param type: int
+    :param deadline: End loop after specified time
+    :param type: float
+    :param exclude: return if condition patter is NOT matched
+    :param type: bool
+    :param condition: search for pattern in output, return if matched
+    :param type: str
+    :param \*\*kwargs: Optional arguments that ``execute`` takes.
+
+    :return: :class:`Response <Response>` object
+    :rtype: eapi.messages.Response
+    """
+    start = time.time()
+    check = start
+    response = None
+    
+    while (check - deadline) < start:
+        response = execute(target, commands, encoding, **kwargs)
+        match = re.search(condition, str(response))
+
+        if callback:
+            callback(response)
+
+        if exclude:
+            if not match:
+                return True
+        elif match:
+            return True
+
+        time.sleep(interval)
+        check = time.time()
+
+    return False

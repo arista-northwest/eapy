@@ -188,7 +188,7 @@ class Session(object):
     login = new
 
     def send(self, target: Union[str, Target], commands: List[Command],
-             encoding: str = ENCODING, **kwargs):
+             encoding: Optional[str] = None, **kwargs):
         """Send commands to an eAPI target
 
         :param target: eAPI target (host, port)
@@ -208,6 +208,9 @@ class Session(object):
 
         _options.update(kwargs)
         options = _options
+
+        if not encoding:
+            encoding = ENCODING
 
         request = prepare_request(commands, encoding)
 

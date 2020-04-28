@@ -57,6 +57,9 @@ def test_configure(target):
         "no ip access-list DELETE_ME"
     ])
 
+def test_watch(target):
+    eapi.watch(target, ["show clock"], encoding="text", interval=2, deadline=10, callback=lambda x: print(str(x[0])))
 
 def test_logout(target):
     eapi.close(target)
+
