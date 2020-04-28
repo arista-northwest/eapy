@@ -3,11 +3,18 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 import uuid
+
+import os
 from typing import Optional, Union, List
 
 import eapi.sessions
 from eapi.structures import Command, Params, Request
 
+def clear_screen() -> None:
+    if os.name == 'nt': 
+        os.system('cls')
+    else: 
+        os.system('clear')
 
 def indent(spaces, text: str):
     indented = []
