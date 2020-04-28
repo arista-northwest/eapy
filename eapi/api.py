@@ -111,10 +111,10 @@ def configure(target: str, commands: List[Command],
 def watch(target: str,
         command: Command,
         encoding: Optional[str] = None,
-        interval: int = 5,
-        deadline: float = math.inf,
+        interval: Optional[int] = None,
+        deadline: Optional[float] = None,
         exclude: bool = False,
-        condition: str = NEVER_RE,
+        condition: Optional[str] = None,
         callback: Optional[Callable] = None,
         **kwargs) -> bool:
     """Watch a command until deadline or condition matches
@@ -138,6 +138,17 @@ def watch(target: str,
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
+
+    exclude = bool(exclude)
+
+    if not interval:
+        interval = 5
+
+    if not deadline:
+        deadline = math.inf
+
+    if not condition:
+        condition = NEVER_RE
 
     start = time.time()
     check = start
