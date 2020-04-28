@@ -6,6 +6,8 @@ import pytest
 
 sys.path.insert(0, os.path.abspath("."))
 
+import eapi.sessions
+
 from eapi.messages import _TARGET_RE
 from eapi.structures import Certificate, Request
 from eapi.util import prepare_request
@@ -16,6 +18,8 @@ EAPI_USER = os.environ.get('EAPI_USER', "admin")
 EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
+
+eapi.sessions.SSL_WARNINGS = False
 
 @pytest.fixture
 def target():

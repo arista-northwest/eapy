@@ -10,8 +10,6 @@ from tests.conftest import EAPI_TARGET
 
 pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
-eapi.SSL_WARNINGS = False
-
 @pytest.fixture(autouse=True)
 def login(target, auth):
     eapi.login(target, auth)

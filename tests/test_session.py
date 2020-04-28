@@ -1,16 +1,17 @@
 
 from eapi.util import prepare_request
 import pytest
+
+import eapi
+import eapi.exceptions
+import eapi.sessions
 from eapi.messages import Target, Response
 from eapi.sessions import session
-import eapi.exceptions
-import eapi
+
 
 from tests.conftest import EAPI_TARGET
 
 pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
-
-eapi.sessions.SSL_WARNINGS = False
 
 def test_session_new(target, auth):
 
