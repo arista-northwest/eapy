@@ -16,7 +16,8 @@ setup(
     packages=["eapi"],
     install_requires=[
         'requests>=2.18.4',
-        'typing-extensions>=3.7.4.2'
+        'typing-extensions>=3.7.4.2',
+        'click'
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
