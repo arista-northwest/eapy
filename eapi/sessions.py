@@ -12,13 +12,12 @@ import requests
 
 from eapi.util import prepare_request
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
-    EapiHttpError, EapiTimeoutError
+    EapiHttpError
 from eapi.structures import Auth, Certificate, Command
 
 from eapi.messages import Response, Target
 
 from eapi.structures import Timeout
-
 
 # Specifies the default result encoding.  The alternative is 'text'
 ENCODING: str = "json"
