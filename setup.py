@@ -32,5 +32,10 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Terminals'
-    ]
+    ],
+    entry_points = {
+        'console_scripts': [
+            'eapi = eapi.cli:main'
+        ]
+    }
 )
