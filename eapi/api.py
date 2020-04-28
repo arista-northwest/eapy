@@ -11,6 +11,7 @@ from typing import Callable, List, Optional
 from eapi.structures import Auth, Certificate, Command
 from eapi.messages import Response
 from eapi import session
+from eapi import util
 
 NEVER_RE = r'(?!x)x'
 
@@ -106,8 +107,9 @@ def configure(target: str, commands: List[Command],
     commands.append("end")
     return execute(target, commands, encoding, **kwargs)
 
+
 def watch(target: str,
-        commands: List[Command],
+        command: Command,
         encoding: Optional[str] = None,
         interval: int = 5,
         deadline: float = math.inf,
@@ -119,7 +121,7 @@ def watch(target: str,
 
     :param target: eAPI target 
     :param type: Target
-    :param commmands: List of commands to send to target
+    :param commmand: A single command to send
     :param type: list
     :param encoding: json or text (default: json)
     :param type: str
@@ -136,12 +138,12 @@ def watch(target: str,
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
+
     start = time.time()
     check = start
-    response = None
     
     while (check - deadline) < start:
-        response = execute(target, commands, encoding, **kwargs)
+        response = execute(target, [command], encoding, **kwargs)
         match = re.search(condition, str(response))
 
         if callback:
