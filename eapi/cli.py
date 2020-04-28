@@ -60,7 +60,7 @@ def watch(ctx, command, encoding, interval, deadline, exclude, condition):
 
     def _cb(response):
         util.clear_screen()
-        print("Watching: '%s' on %s" % (response.target, response.elements[0].command)) 
+        print("Watching: '%s' on %s" % (response.elements[0].command, response.target)) 
         print(response.elements[0].result.pretty)
 
     eapi.watch(target, command, encoding, interval, deadline, exclude, condition, _cb)
