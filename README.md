@@ -110,6 +110,43 @@ responses:
     Free memory:            689532 kB
 ```
 
+### Watch w/ callback
+
+```python
+import eapi
+def _callback(response):
+    for intf, stats in response[0].result["interfaces"].items():
+        if stats["inBpsRate"] < 1.0 and stats["outBpsRate"] < 1.0:
+            continue
+        print("%s: %.2f %.2f" % (intf, stats["inBpsRate"], stats["outBpsRate"]))
+
+eapi.watch("switch", "show interfaces counters rates", 
+  auth=("admin", ""), callback=_callback)
+```
+
+_Output:_
+
+```
+Ethernet1/1: 27626716076.31 53265.03
+Ethernet18/1: 229200.85 14655845830.05
+Ethernet22/1: 86.24 120.63
+Port-Channel2: 351170.64 29268271539.15
+Ethernet17/1: 137304.38 14643103747.58
+Ethernet21/1: 8453.93 8043.44
+Management1: 14495.04 24897.54
+Port-Channel1: 12685.43 7732.44
+Ethernet3/1: 0.00 551.77
+Ethernet1/1: 27627041678.14 58635.84
+Ethernet18/1: 287323.71 14655830910.19
+Ethernet22/1: 70.61 131.78
+Port-Channel2: 975137.23 38892350187.13
+Ethernet17/1: 157613.59 14643105143.17
+Ethernet21/1: 8997.78 8694.72
+Management1: 14383.06 24732.90
+Port-Channel1: 10769.91 10321.52
+Ethernet3/1: 0.00 550.58
+```
+
 # Login - to avoid sending password everytime
  
 ```python
