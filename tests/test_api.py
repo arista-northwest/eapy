@@ -37,8 +37,14 @@ def test_execute_jsonerr(target):
 
 def test_execute_err(target):
 
-    response = eapi.execute(target, commands=[
-                            "show hostname", "show bogus", "show running-config"], encoding="text")
+    response = eapi.execute(target,
+        commands=[
+            "show hostname",
+            "show bogus",
+            "show running-config"
+        ],
+        encoding="text"
+    )
     assert response.code > 0
 
 
@@ -56,7 +62,13 @@ def test_configure(target):
     ])
 
 def test_watch(target):
-    eapi.watch(target, ["show clock"], encoding="text", interval=2, deadline=10, callback=lambda x: print(str(x[0])))
+    eapi.watch(target, "show clock", encoding="text", interval=2, deadline=10,
+        callback=lambda x: print(str(x[0])))
+
+def test_watch_gen(target):
+    for resp in eapi.watch(target, "show clock", encoding="text", interval=2,
+            deadline=10):
+        pass
 
 def test_logout(target):
     eapi.close(target)

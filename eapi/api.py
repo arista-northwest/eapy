@@ -6,7 +6,7 @@ import math
 import re
 import time
 
-from typing import Callable, List, Optional
+from typing import Callable, Iterator, List, Optional
 
 from eapi.structures import Auth, Certificate, Command
 from eapi.messages import Response
@@ -116,7 +116,7 @@ def watch(target: str,
         exclude: bool = False,
         condition: Optional[str] = None,
         callback: Optional[Callable] = None,
-        **kwargs) -> bool:
+        **kwargs) -> Optional[Iterator[Response]]:
     """Watch a command until deadline or condition matches
 
     :param target: eAPI target 
@@ -159,6 +159,8 @@ def watch(target: str,
 
         if callback:
             callback(response)
+        else:
+            yield response
 
         if exclude:
             if not match:
