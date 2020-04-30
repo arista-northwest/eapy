@@ -50,8 +50,6 @@ def execute(ctx, commands, encoding="text"):
     cert = ctx.obj["cert"]
     verify = ctx.obj["verify"]
 
-
-
     resp = eapi.execute(target, commands,
         encoding=encoding,
         auth=auth,
@@ -75,7 +73,14 @@ def watch(ctx, command, encoding, interval, deadline, exclude, condition):
     cert = ctx.obj["cert"]
     verify = ctx.obj["verify"]
 
-    for r in eapi.watch(target, command,
+    def _cb(response, matched):
+        util.clear_screen()
+        print(f"Watching '{response[0].command}' in {response.target}")
+        print()
+        print(response[0])
+
+    eapi.watch(target, command,
+        callback=_cb,
         encoding=encoding,
         interval=interval,
         deadline=deadline,
@@ -83,6 +88,4 @@ def watch(ctx, command, encoding, interval, deadline, exclude, condition):
         condition=condition,
         auth=auth,
         cert=cert,
-        verify=verify):
-
-        print(r)
+        verify=verify)
