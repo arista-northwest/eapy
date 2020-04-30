@@ -34,7 +34,7 @@ def main(ctx, target, username, password, cert, key, verify):
     ctx.obj = {
         'target': target,
         'auth': auth,
-        'cert': cert,
+        'cert': pair,
         'verify': verify,
     }
 
@@ -49,6 +49,8 @@ def execute(ctx, commands, encoding="text"):
     auth = ctx.obj["auth"]
     cert = ctx.obj["cert"]
     verify = ctx.obj["verify"]
+
+
 
     resp = eapi.execute(target, commands,
         encoding=encoding,
