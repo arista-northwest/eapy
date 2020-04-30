@@ -147,24 +147,13 @@ Port-Channel1: 10769.91 10321.52
 Ethernet3/1: 0.00 550.58
 ```
 
-# Login - to avoid sending password everytime
- 
-```python
->>> eapi.new("veos3", auth=("admin", ""))
->>> resp = eapi.execute("veos3", ["show version"], encoding="text")
->>> print(resp)
-... output omitted ...
-```
-
 ### Same over HTTPS will fail if certificate is not trusted.
 
 _disabled warnings for this example_
 
 ```python
 >>> eapi.sessions.SSL_WARNINGS = False
->>> eapi.new("https://veos", auth=("admin", ""), verify=False)
->>>
->>> resp = eapi.execute("https://veos", ["show version"], encoding="text")
+>>> resp = eapi.execute("https://veos", ["show version"], encoding="text", auth=("admin", ""), verify=False)
 ...
 >>> print(resp)
 ... output omitted ...
@@ -176,6 +165,5 @@ See the eAPI client certificate authentication cheetsheet [here](https://gist.gi
 
 ```python
 >>> eapi.sessions.SSL_WARNINGS = False
->>> eapi.new("https://veos", cert=("/path/to/client.crt", "/path/to/client.key"), verify=False)
->>> resp = eapi.execute("https://veos", ["show version"])
+>>> resp = eapi.execute("https://veos", ["show version"], cert=("/path/to/client.crt", "/path/to/client.key"), verify=False)
 ```
