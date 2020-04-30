@@ -11,7 +11,7 @@ import eapi.sessions
 from eapi.sessions import Session
 
 from eapi.messages import _TARGET_RE
-from eapi.structures import Certificate, Request
+from eapi.types import Certificate, Request
 from eapi.util import prepare_request
 
 EAPI_TARGET = os.environ.get('EAPI_TARGET', "")
@@ -21,7 +21,7 @@ EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 
-eapi.sessions.SSL_WARNINGS = False
+eapi.environments.SSL_WARNINGS = False
 
 
 @pytest.fixture

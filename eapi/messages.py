@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
+from eapi.environments import EAPI_DEFAULT_TRANSPORT
 import re
 
 from collections.abc import Mapping
@@ -9,7 +10,7 @@ from typing import List, Union, Optional
 from typing_extensions import TypedDict
 
 import eapi.sessions
-from eapi.structures import Command
+from eapi.types import Command
 
 from eapi.util import zpad, indent
 
@@ -184,7 +185,7 @@ class Target(object):
         self.hostname = hostname
 
         if not transport:
-            transport = eapi.sessions.TRANSPORT
+            transport = EAPI_DEFAULT_TRANSPORT
         elif transport not in _TRANSPORTS.keys():
             raise ValueError("transport must be 'http(s)' not %s" % transport)
 

@@ -6,7 +6,7 @@ import pytest
 
 import eapi
 
-from tests.conftest import EAPI_TARGET
+from tests.conftest import EAPI_TARGET, commands
 
 pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
@@ -59,4 +59,16 @@ def test_configure(target, auth):
 def test_watch(target, auth):
     for resp in eapi.watch(target, "show clock", auth=auth, encoding="text", deadline=10):
         pass
+
+@pytest.mark.asyncio
+async def test_aexecute(target, commands, auth):
+    resp = await eapi.aexecute(target, commands, auth=auth)
+
+# @pytest.mark.asyncio
+# async def test_awatch(target, auth):
+#     async for resp in eapi.awatch(
+#             target, "show clock", auth=auth, encoding="text", deadline=10):
+#         print(resp)
+
+
 

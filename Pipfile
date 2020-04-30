@@ -8,6 +8,7 @@ eapi-py = {path = ".", editable = true, extras = ["tests"]}
 autopep8="*"
 coverage="*"
 pytest="*"
+pytest-asyncio="*"
 Sphinx="*"
 
 [packages]

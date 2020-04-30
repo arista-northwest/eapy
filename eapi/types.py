@@ -31,7 +31,7 @@ Auth = Tuple[str, Optional[str]]
 
 Certificate = Optional[Union[str, Tuple[str, str], Tuple[str, str, str]]]
 
-Timeout = Union[int, Tuple[int, int]]
+Timeout = Union[None, float, Tuple[float, float, float, float]]
 
 RequestsOptions = TypedDict('RequestsOptions', {
     'auth': Auth,

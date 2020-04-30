@@ -1,3 +1,4 @@
+import asyncio
 
 from sys import version
 from eapi.util import prepare_request
@@ -7,10 +8,10 @@ import eapi
 import eapi.exceptions
 import eapi.sessions
 from eapi.messages import Target, Response
-from eapi.sessions import Session
+from eapi.sessions import Session, AsyncSession
 
 
-from tests.conftest import EAPI_TARGET, session
+from tests.conftest import EAPI_TARGET
 
 pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
@@ -63,22 +64,21 @@ def test_context(target, auth):
 
 def test_ssl_verify(starget, cert):
 
-    sess = Session()
-    sess.cert = cert
+    sess = Session(cert=cert)
     with pytest.raises(eapi.exceptions.EapiError):  
         sess.send(starget, ["show users"])
 
-def test_getset(cert):
-    sess = Session()
-    sess.cert = cert
-    cert_ = sess.cert
+# def test_getset(cert):
+#     sess = Session()
+#     sess.cert = cert
+#     cert_ = sess.cert
 
-    assert cert_ == cert
+#     assert cert_ == cert
 
-    sess.verify = False
-    verify = sess.verify
+#     sess.verify = False
+#     verify = sess.verify
 
-    assert verify == False
+#     assert verify == False
 
 
 def test_ssl(session, starget, cert):
@@ -102,3 +102,23 @@ def test_send_noauth(session, target):
     with pytest.raises(eapi.exceptions.EapiAuthenticationFailure):
         sess.send(target, ["show hostname"])
 
+
+@pytest.mark.asyncio
+async def test_async(target, auth):
+    
+    targets = [target] * 4
+    commands = [
+        "show version",
+        "show interfaces",
+        "show running-config",
+    ] * 3
+    
+    async with AsyncSession(auth=auth) as sess:
+        tasks = []
+        for t in targets:
+            for c in commands:
+                tasks.append(sess.send(t, [c], encoding="text"))
+        
+        responses = await asyncio.gather(*tasks)
+        
+        assert len(responses) == 36

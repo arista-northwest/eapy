@@ -6,7 +6,7 @@ from sys import version
 import click
 
 import eapi
-import eapi.sessions
+import eapi.environments
 
 from eapi import util
 
@@ -23,7 +23,7 @@ def main(ctx, target, username, password, cert, key, verify):
     auth = None
     
     if not verify:
-        eapi.sessions.SSL_WARNINGS = False
+        eapi.environments.SSL_WARNINGS = False
 
     if cert:
         pair = (cert, key)

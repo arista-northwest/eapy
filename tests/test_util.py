@@ -40,19 +40,7 @@ def test_prepare_request(reqwest):
         assert len(command["cmd"]) > 0
 
     p = prepare_request(["show stuff"])
-    assert p["params"]["format"] == eapi.sessions.ENCODING
-
-
-# def test_prepare_target():
-
-#     assert prepare_target("host", transport="http") == "http://host"
-#     assert prepare_target("host//", transport="http") == "http://host"
-#     assert prepare_target("http://host:80") == "http://host:80"
-#     assert prepare_target("host:8080", transport="http") == "http://host:8080"
-#     # assert prepare_target(("host", 443), transport="https") == "https://host:443"
-#     assert prepare_target("host", transport="https") == "https://host"
-#     assert prepare_target("host:443", transport="https") == "https://host:443"
-#     assert prepare_target("host:8443", transport="https") == "https://host:8443"
+    assert p["params"]["format"] == eapi.environments.EAPI_DEFAULT_ENCODING
 
 def test_zpad():
     a = ['a', 'b', 'c', 'd', 'e', 'f', 'g']

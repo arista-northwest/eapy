@@ -8,7 +8,9 @@ import os
 from typing import Optional, Union, List
 
 import eapi.sessions
-from eapi.structures import Command, Params, Request
+from eapi.types import Command, Params, Request
+
+from eapi.environments import EAPI_DEFAULT_ENCODING
 
 def clear_screen() -> None:
     if os.name == 'nt': 
@@ -44,7 +46,7 @@ def prepare_request(commands: List[Command], encoding: Optional[str] = None) -> 
     request_id = str(uuid.uuid4())
 
     if not encoding:
-        encoding = eapi.sessions.ENCODING
+        encoding = EAPI_DEFAULT_ENCODING
 
     params: Params = {
         "version": 1,
