@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
+import asyncio
 
 import pytest
 
@@ -57,18 +58,28 @@ def test_configure(target, auth):
 
 
 def test_watch(target, auth):
-    for resp in eapi.watch(target, "show clock", auth=auth, encoding="text", deadline=10):
-        pass
+    def _cb(r, matched: bool):
+        print(r)
+    
+    eapi.watch(target, "show clock", callback=_cb, auth=auth, encoding="text", deadline=10)
+    
 
 @pytest.mark.asyncio
 async def test_aexecute(target, commands, auth):
     resp = await eapi.aexecute(target, commands, auth=auth)
 
-# @pytest.mark.asyncio
-# async def test_awatch(target, auth):
-#     async for resp in eapi.awatch(
-#             target, "show clock", auth=auth, encoding="text", deadline=10):
-#         print(resp)
+@pytest.mark.asyncio
+async def test_awatch(target, auth):
+    tasks = []
 
+    def _cb(r, match: bool):
+        print(r)
 
+    for c in ["show clock", "show hostname"]:
+        tasks.append(
+            eapi.awatch(target, c, callback=_cb, auth=auth, encoding="text", deadline=10)
+        )
+    
+    await asyncio.wait(tasks)
+    
 
