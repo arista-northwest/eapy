@@ -15,7 +15,7 @@ setup(
     version=version,
     packages=["eapi"],
     install_requires=[
-        'requests>=2.18.4',
+        'httpx>=0.12.0',
         'typing-extensions>=3.7.4.2',
         'click'
     ],
