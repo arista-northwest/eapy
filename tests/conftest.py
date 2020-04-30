@@ -8,6 +8,8 @@ sys.path.insert(0, os.path.abspath("."))
 
 import eapi.sessions
 
+from eapi.sessions import Session
+
 from eapi.messages import _TARGET_RE
 from eapi.structures import Certificate, Request
 from eapi.util import prepare_request
@@ -20,6 +22,27 @@ EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 
 eapi.sessions.SSL_WARNINGS = False
+
+
+@pytest.fixture
+def auth():
+    return (EAPI_USER, EAPI_PASSWORD)
+
+@pytest.fixture
+def cert():
+    cert: Certificate = None
+
+    if EAPI_CLIENT_CERT:
+        if not EAPI_CLIENT_KEY:
+            cert = EAPI_CLIENT_CERT
+        else:
+            cert = (EAPI_CLIENT_CERT, EAPI_CLIENT_KEY)
+    
+    return cert
+
+@pytest.fixture
+def session(cert, auth):
+    return Session(auth=auth, cert=cert, verify=False)
 
 @pytest.fixture
 def target():
@@ -40,21 +63,6 @@ def starget(target):
     
     return starget
 
-@pytest.fixture
-def auth():
-    return (EAPI_USER, EAPI_PASSWORD)
-
-@pytest.fixture
-def certificate():
-    cert: Certificate = None
-
-    if EAPI_CLIENT_CERT:
-        if not EAPI_CLIENT_KEY:
-            cert = EAPI_CLIENT_CERT
-        else:
-            cert = (EAPI_CLIENT_CERT, EAPI_CLIENT_KEY)
-    
-    return cert
 
 @pytest.fixture()
 def commands():

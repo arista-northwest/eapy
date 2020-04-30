@@ -2,6 +2,7 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+from sys import version
 import click
 
 import eapi
@@ -31,10 +32,12 @@ def main(ctx, target, username, password, cert, key, verify):
         auth = (username, password)
 
     ctx.obj = {
-        'target': target
+        'target': target,
+        'auth': auth,
+        'cert': cert,
+        'verify': verify,
     }
 
-    eapi.new(target, auth=auth, cert=pair, verify=verify)
 
 @main.command()
 @click.argument("commands", nargs=-1, required=True)
@@ -43,7 +46,15 @@ def main(ctx, target, username, password, cert, key, verify):
 def execute(ctx, commands, encoding="text"):
     
     target = ctx.obj["target"]
-    resp = eapi.execute(target, commands, encoding=encoding)
+    auth = ctx.obj["auth"]
+    cert = ctx.obj["cert"]
+    verify = ctx.obj["verify"]
+
+    resp = eapi.execute(target, commands,
+        encoding=encoding,
+        auth=auth,
+        cert=cert,
+        verify=verify)
 
     print(resp)
 
@@ -56,11 +67,20 @@ def execute(ctx, commands, encoding="text"):
 @click.option("--condition", "-c", default=None, help="Pattern to search for, watch ends when matched")
 @click.pass_context
 def watch(ctx, command, encoding, interval, deadline, exclude, condition):
+    
     target = ctx.obj["target"]
+    auth = ctx.obj["auth"]
+    cert = ctx.obj["cert"]
+    verify = ctx.obj["verify"]
 
-    def _cb(response):
-        util.clear_screen()
-        print("Watching: '%s' on %s" % (response.elements[0].command, response.target)) 
-        print(response.elements[0].result.pretty)
+    for r in eapi.watch(target, command,
+        encoding=encoding,
+        interval=interval,
+        deadline=deadline,
+        exclude=exclude,
+        condition=condition,
+        auth=auth,
+        cert=cert,
+        verify=verify):
 
-    eapi.watch(target, command, encoding, interval, deadline, exclude, condition, _cb)
+        print(r)

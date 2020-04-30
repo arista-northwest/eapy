@@ -8,11 +8,11 @@ import warnings
 
 from typing import Dict, List, Optional, Union
 
-import requests
+import httpx
 
 from eapi.util import prepare_request
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
-    EapiHttpError
+    EapiHttpError, EapiTimeoutError
 from eapi.structures import Auth, Certificate, Command
 
 from eapi.messages import Response, Target
@@ -57,18 +57,31 @@ class DisableSslWarnings(object):
 
 
 class Session(object):
-    def __init__(self):
-        # use a requests Session to manage state
-        self._session = requests.Session()
+    def __init__(self,
+            auth: Optional[Auth] = None,
+            cert: Optional[Certificate] = None,
+            verify: Optional[bool] = None,
+            **kwargs):
+       
+        if verify is None:
+            verify = SSL_VERIFY
 
-        # every request should send the same headers
-        # This should not need to change.  All responses are JSON
-        self._session.headers = {"Content-Type": "application/json"}
+        # use a httpx Session to manage state
+        self._session = httpx.Client(
+            auth=auth,
+            cert=cert,
+            headers={"Content-Type": "application/json"},
+            verify=verify,
+            **kwargs
+        )
 
         # store parameters for future requests
         self._eapi_sessions: Dict[str, dict] = {}
 
-    def logged_in(self, target: Union[str, Target], transport: Optional[str] = None):
+    def logged_in(self, 
+            target: Union[str, Target],
+            transport: Optional[str] = None
+        ) -> bool:
         """determines if session cookie is set"""
         target_: Target = Target.from_string(target)
 
@@ -76,47 +89,32 @@ class Session(object):
 
         return True if cookie else False
 
-    def __enter__(self):
+    @property
+    def cert(self) -> Certificate:
+        return self._session.cert
+    
+    @cert.setter
+    def cert(self, cert: Certificate) -> None:
+        self._session.cert = cert
+    
+    @property
+    def verify(self) -> bool:
+        return self._session.verify
+    
+    @verify.setter
+    def verify(self, verify: bool):
+        self._session.verify = verify
+
+    def __enter__(self) -> "Session":
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         self.shutdown()
 
-    def _login(self, target: Target, auth, **kwargs) -> bool:
-
-        if self.logged_in(target):
-            return True
-
-        username, password = auth
-        payload = {"username": username, "password": password}
-
-        resp = self._send(target.url + "/login", data=payload, **kwargs)
-
-        if resp.status_code == 404:
-            # fall back to basic auth if /login is not found
-            return False
-        elif not resp.ok:
-            raise EapiError(resp.reason)
-
-        if "Session" not in resp.cookies:
-            warnings.warn(("Got a good response, but no 'Session' found in "
-                           "cookies. Using fallback auth."))
-            return False
-        elif resp.cookies["Session"] == "None":
-            # this is weird... investigate further
-            warnings.warn("Got cookie Session='None' in response?! "
-                          "Using fallback auth.")
-            return False
-
-        return True
-
-    def _send(self, url, data, **options):
+    def _send(self, url, data, **options) -> httpx.Response:
         """Sends the request to EAPI"""
 
         response = None
-
-        if "verify" not in options:
-            options["verify"] = SSL_VERIFY
 
         if "timeout" not in options:
             options["timeout"] = TIMEOUT
@@ -125,22 +123,22 @@ class Session(object):
             with DisableSslWarnings():
                 response = self._session.post(url, data=json.dumps(data),
                                               **options)
-        # except requests.Timeout as exc:
-        #     raise EapiTimeoutError(str(exc))
-        except requests.ConnectionError as exc:
+        except urllib3.exceptions.ReadTimeoutError as exc:
+            raise EapiTimeoutError(str(exc))
+        except httpx.HTTPError as exc:
             raise EapiError(str(exc))
 
         try:
             response.raise_for_status()
-        except requests.exceptions.HTTPError as exc:
+        except httpx.HTTPError as exc:
             if response.status_code == 401:
                 raise EapiAuthenticationFailure(str(exc))
             raise EapiHttpError(str(exc))
 
         return response
 
-    def close(self, target: Union[str, Target]) -> None:
-        """Create a new eAPI session
+    def logout(self, target: Union[str, Target]) -> None:
+        """Log out of an eAPI session
 
         :param target: eAPI target (host, port)
         :param type: Target
@@ -157,11 +155,9 @@ class Session(object):
         if self.logged_in(target):
             self._send(target_.url + "/logout", data={}, **options)
 
-    logout = close
-
-    def new(self, target: Union[str, Target], auth: Optional[Auth] = None,
-            cert: Optional[Certificate] = None, **kwargs) -> None:
-        """Create a new eAPI session
+    def login(self, target: Union[str, Target], auth: Optional[Auth] = None,
+            **kwargs) -> None:
+        """Login to an eAPI session
 
         :param target: eAPI target (host, port)
         :param type: Target
@@ -169,22 +165,40 @@ class Session(object):
         :param type: Auth
         :param cert: client certificate or (certificate, key) tuple
         :param type: Certificate
-        :param \*\*options: other pass through `requests` options
-        :param type: RequestsOptions
+        :param \*\*options: other pass through `httpx` options
+        :param type: HttpxOptions
 
         """
         target_: Target = Target.from_string(target)
 
-        if auth:
-            if not self._login(target_, auth, **kwargs):
-                # store auth if login fails (without throwing anm exception)
-                kwargs["auth"] = auth
-        elif cert:
-            kwargs["cert"] = cert
+        if self.logged_in(target):
+            return
+
+        username, password = auth or self._session.auth
+        payload = {"username": username, "password": password}
+
+        resp = self._send(target_.url + "/login", data=payload, **kwargs)
+
+        if resp.status_code == 404:
+            # Older versions do not have the login endpoint.
+            # fall back to basic auth if /login is not found
+            pass
+        elif resp.status_code != 200:
+            raise EapiError(f"{resp.status_code} {resp.reason_phrase}")
+
+        if "Session" not in resp.cookies:
+            warnings.warn(("Got a good response, but no 'Session' found in "
+                           "cookies. Using fallback auth."))
+        elif resp.cookies["Session"] == "None":
+            # this is weird... investigate further
+            warnings.warn("Got cookie Session='None' in response?! "
+                          "Using fallback auth.")
+
+        if not self.logged_in(target):
+            # store auth if login fails (without throwing an exception)
+            kwargs["auth"] = auth
 
         self._eapi_sessions[target_.domain] = kwargs
-
-    login = new
 
     def send(self, target: Union[str, Target], commands: List[Command],
              encoding: Optional[str] = None, **kwargs):
@@ -195,7 +209,7 @@ class Session(object):
         :param commands: List of `Command` objects
         :param type: list
         :param encoding: response encoding 'json' or 'text' (default: json)
-        :param \*\*kwargs: other pass through `requests` options
+        :param \*\*kwargs: other pass through `httpx` options
         :param type: dict
 
         """
@@ -210,7 +224,7 @@ class Session(object):
 
         if not encoding:
             encoding = ENCODING
-
+        
         request = prepare_request(commands, encoding)
 
         response = self._send(target_.url + "/command-api",
@@ -219,9 +233,5 @@ class Session(object):
         return Response.from_rpc_response(target_, request, response.json())
 
     def shutdown(self):
-        """shutdown the underlying requests session"""
+        """shutdown the underlying httpx session"""
         self._session.close()
-
-
-# session singleton(ish)
-session = Session()

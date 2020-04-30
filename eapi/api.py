@@ -6,50 +6,22 @@ import math
 import re
 import time
 
-from typing import Callable, Iterator, List, Optional
+from typing import Iterator, List, Optional
 
 from eapi.structures import Auth, Certificate, Command
 from eapi.messages import Response
-from eapi import session
-from eapi import util
+from eapi import Session
 
 NEVER_RE = r'(?!x)x'
 
-def new(target: str, auth: Optional[Auth] = None,
-        cert: Optional[Certificate] = None, **kwargs) -> None:
-    """Create an eAPI session
 
-    :param target: eAPI target 
-    :param type: Target
-    :param auth: username, password tuple
-    :param type: Auth
-    :param cert: client certificate or (certificate, key) tuple
-    :param type: Certificate
-    :param \*\*options: pass through `requests` options
-    :param type: RequestsOptions
-    """
-    session.new(target, auth=auth, cert=cert, **kwargs)
-
-
-login = new
-
-
-def close(target: str, **kwargs):
-    """End an eAPI session
-
-    :param target: eAPI target 
-    :param type: Target
-    :param \*\*kwargs: pass through `requests` options
-    :param type: RequestsOptions
-    """
-    session.close(target, **kwargs)
-
-
-logout = close
-
-
-def execute(target: str, commands: List[Command],
-        encoding: Optional[str] = None, **kwargs) -> Response:
+def execute(target: str,
+        commands: List[Command],
+        encoding: Optional[str] = None,
+        auth: Optional[Auth] = None,
+        cert: Optional[Certificate] = None,
+        verify: Optional[bool] = None,
+        **kwargs) -> Response:
     """Send an eAPI request
 
     :param target: eAPI target 
@@ -58,16 +30,14 @@ def execute(target: str, commands: List[Command],
     :param type: list
     :param encoding: json or text (default: json)
     :param type: str
-    :param \*\*kwargs: pass through `requests` options
-    :param type: RequestsOptions
+    :param \*\*kwargs: pass through ``httpx`` options
 
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
 
-    response = session.send(target, commands, encoding, **kwargs)
-
-    return response
+    with Session(auth=auth, cert=cert, verify=verify) as sess:
+        return sess.send(target, commands, encoding=encoding, **kwargs)
 
 
 def enable(target: str, commands: List[Command], secret: str = "",
@@ -79,11 +49,12 @@ def enable(target: str, commands: List[Command], secret: str = "",
     :param type: list
     :param encoding: json or text (default: json)
     :param type: str
-    :param \*\*kwargs: Optional arguments that ``execute`` takes.
+    :param \*\*kwargs: Optional arguments that ``_send`` takes.
 
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
+
     commands.insert(0, {"cmd": "enable", "input": secret})
     return execute(target, commands, encoding, **kwargs)
 
@@ -103,6 +74,7 @@ def configure(target: str, commands: List[Command],
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
+
     commands.insert(0, "configure")
     commands.append("end")
     return execute(target, commands, encoding, **kwargs)
@@ -115,8 +87,8 @@ def watch(target: str,
         deadline: Optional[float] = None,
         exclude: bool = False,
         condition: Optional[str] = None,
-        callback: Optional[Callable] = None,
         **kwargs) -> Optional[Iterator[Response]]:
+    
     """Watch a command until deadline or condition matches
 
     :param target: eAPI target 
@@ -138,11 +110,11 @@ def watch(target: str,
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
-
+    
     exclude = bool(exclude)
 
     if not interval:
-        interval = 5
+        interval = 2
 
     if not deadline:
         deadline = math.inf
@@ -152,15 +124,12 @@ def watch(target: str,
 
     start = time.time()
     check = start
-    
+
     while (check - deadline) < start:
         response = execute(target, [command], encoding, **kwargs)
         match = re.search(condition, str(response))
 
-        if callback:
-            callback(response)
-        else:
-            yield response
+        yield response
 
         if exclude:
             if not match:

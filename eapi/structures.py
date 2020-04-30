@@ -29,9 +29,8 @@ Request = TypedDict('Request', {
 
 Auth = Tuple[str, Optional[str]]
 
-Certificate = Optional[Union[str, Tuple[str, str]]]
+Certificate = Optional[Union[str, Tuple[str, str], Tuple[str, str, str]]]
 
-# <int> or (<int>, <int>)
 Timeout = Union[int, Tuple[int, int]]
 
 RequestsOptions = TypedDict('RequestsOptions', {

@@ -39,6 +39,8 @@ def test_text_response(text_response):
     resp = Response.from_rpc_response(*text_response)
     assert resp.code == 0
     assert "FQDN" in resp
+    assert "target" in resp
+    
     resp.to_dict()
     for elem in resp:
         assert isinstance(elem, ResponseElem)

@@ -44,6 +44,7 @@ class JsonResult(Mapping):
     def pretty(self):
         return pformat(self._data)
 
+
 class TextResult(object):
     def __init__(self, result: str):
         self._data = result.strip()
@@ -104,6 +105,7 @@ class Response(Mapping):
 
     def __len__(self):
         return len(self.elements)
+
     @property
     def code(self):
         return self.error.get("code", 0)
@@ -190,7 +192,7 @@ class Target(object):
 
         if isinstance(port, int) and (port < 1 or port > 65535):
             raise ValueError("port must be > 0 and <= 65535")
-        
+
         self.port = port
 
     def __str__(self):

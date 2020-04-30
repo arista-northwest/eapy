@@ -11,7 +11,7 @@ pytest="*"
 Sphinx="*"
 
 [packages]
-requests="*"
+httpx="*"
 typing-extensions="*"
 click="*"
 

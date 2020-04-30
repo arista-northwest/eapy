@@ -10,32 +10,25 @@ from tests.conftest import EAPI_TARGET
 
 pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
-@pytest.fixture(autouse=True)
-def login(target, auth):
-    eapi.login(target, auth)
 
-def test_login(target):
-    assert eapi.session.logged_in(target)
+def test_execute(target, commands, auth):
+    eapi.execute(target, commands=commands, auth=auth)
 
+def test_enable(target, commands, auth):
+    eapi.enable(target, commands=commands, auth=auth, secret="s3cr3t")
 
-def test_execute(target, commands):
-    eapi.execute(target, commands=commands)
-
-def test_enable(target, commands):
-    eapi.enable(target, commands=commands, secret="s3cr3t")
-
-def test_execute_text(target, commands):
-    eapi.execute(target, commands=commands, encoding="text")
+def test_execute_text(target, commands, auth):
+    eapi.execute(target, commands=commands, auth=auth, encoding="text")
 
 
-def test_execute_jsonerr(target):
+def test_execute_jsonerr(target, auth):
 
     response = eapi.execute(
-        target, commands=["show hostname", "show bogus"], encoding="json")
+        target, commands=["show hostname", "show bogus"], auth=auth, encoding="json")
     assert response.code > 0
 
 
-def test_execute_err(target):
+def test_execute_err(target, auth):
 
     response = eapi.execute(target,
         commands=[
@@ -43,33 +36,27 @@ def test_execute_err(target):
             "show bogus",
             "show running-config"
         ],
-        encoding="text"
+        encoding="text",
+        auth=auth
     )
     assert response.code > 0
 
 
-def test_configure(target):
+def test_configure(target, auth):
 
     eapi.configure(target, [
         "ip access-list standard DELETE_ME",
         "permit any"
-    ])
+    ], auth=auth)
 
-    eapi.execute(target, ["show ip access-list DELETE_ME"])
+    eapi.execute(target, ["show ip access-list DELETE_ME"], auth=auth)
 
     eapi.configure(target, [
         "no ip access-list DELETE_ME"
-    ])
+    ], auth=auth)
 
-def test_watch(target):
-    eapi.watch(target, "show clock", encoding="text", interval=2, deadline=10,
-        callback=lambda x: print(str(x[0])))
 
-def test_watch_gen(target):
-    for resp in eapi.watch(target, "show clock", encoding="text", interval=2,
-            deadline=10):
+def test_watch(target, auth):
+    for resp in eapi.watch(target, "show clock", auth=auth, encoding="text", deadline=10):
         pass
-
-def test_logout(target):
-    eapi.close(target)
 
