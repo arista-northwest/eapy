@@ -6,7 +6,7 @@ import math
 import re
 import time
 
-from typing import Awaitable, Iterator, List, Optional
+from typing import Callable, Iterator, List, Optional
 
 from eapi.types import Auth, Certificate, Command
 from eapi.messages import Response
@@ -82,6 +82,7 @@ def configure(target: str, commands: List[Command],
 
 def watch(target: str,
         command: Command,
+        callback: Callable = None,
         encoding: Optional[str] = None,
         interval: Optional[int] = None,
         deadline: Optional[float] = None,
@@ -95,6 +96,8 @@ def watch(target: str,
     :param type: Target
     :param commmand: A single command to send
     :param type: list
+    :param callback: Callback function for responses
+    :param type: Callable
     :param encoding: json or text (default: json)
     :param type: str
     :param interval: time between repeating command
@@ -105,12 +108,15 @@ def watch(target: str,
     :param type: bool
     :param condition: search for pattern in output, return if matched
     :param type: str
+
     :param \*\*kwargs: Optional arguments that ``execute`` takes.
 
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
     
+    matched: bool = False
+
     exclude = bool(exclude)
 
     if not interval:
@@ -129,18 +135,18 @@ def watch(target: str,
         response = execute(target, [command], encoding, **kwargs)
         match = re.search(condition, str(response))
 
-        yield response
-
-        if exclude:
-            if not match:
-                return True
+        if exclude and not match:
+            matched = True
         elif match:
-            return True
+            matched = True
+        
+        callback(response, matched)
+
+        if matched:
+            break
 
         time.sleep(interval)
         check = time.time()
-
-    return False
 
 async def aexecute(target: str,
         commands: List[Command],
@@ -149,7 +155,7 @@ async def aexecute(target: str,
         cert: Optional[Certificate] = None,
         verify: Optional[bool] = None,
         **kwargs) -> Response:
-    """Async verions of execute
+    """Send command(s) to an eAPI target (async version)
 
     :param target: eAPI target 
     :param type: Target
@@ -166,21 +172,64 @@ async def aexecute(target: str,
     async with AsyncSession(auth=auth, cert=cert, verify=verify) as sess:
         return await sess.send(target, commands, encoding=encoding, **kwargs)
 
+async def aenable(target: str, commands: List[Command], secret: str = "",
+        encoding: Optional[str] = None, **kwargs) -> Response:
+    """Prepend 'enable' command (async version)
+    :param target: eAPI target 
+    :param type: Target
+    :param commmands: List of commands to send to target
+    :param type: list
+    :param encoding: json or text (default: json)
+    :param type: str
+    :param \*\*kwargs: Optional arguments that ``_send`` takes.
+
+    :return: :class:`Response <Response>` object
+    :rtype: eapi.messages.Response
+    """
+
+    commands.insert(0, {"cmd": "enable", "input": secret})
+    return await aexecute(target, commands, encoding, **kwargs)
+
+
+async def aconfigure(target: str, commands: List[Command],
+        encoding: Optional[str] = None, **kwargs) -> Response:
+    """Wrap commands in a 'configure'/'end' block (async version)
+
+    :param target: eAPI target 
+    :param type: Target
+    :param commmands: List of commands to send to target
+    :param type: list
+    :param encoding: json or text (default: json)
+    :param type: str
+    :param \*\*kwargs: Optional arguments that ``execute`` takes.
+
+    :return: :class:`Response <Response>` object
+    :rtype: eapi.messages.Response
+    """
+
+    commands.insert(0, "configure")
+    commands.append("end")
+    return await aexecute(target, commands, encoding, **kwargs)
+
 async def awatch(target: str,
         command: Command,
+        callback: Callable = None,
         encoding: Optional[str] = None,
         interval: Optional[int] = None,
         deadline: Optional[float] = None,
         exclude: bool = False,
         condition: Optional[str] = None,
-        **kwargs) -> Iterator[Response]:
+        
+        **kwargs) -> None:
     
-    """Async verions of watch
+    """Watch a command until deadline or condition matches (async version)
 
     :param target: eAPI target 
     :param type: Target
     :param commmand: A single command to send
     :param type: list
+    :param callback: Callback function for responses
+    :param type: Callable
     :param encoding: json or text (default: json)
     :param type: str
     :param interval: time between repeating command
@@ -196,6 +245,8 @@ async def awatch(target: str,
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
+
+    matched: bool = False
     
     exclude = bool(exclude)
 
@@ -213,15 +264,17 @@ async def awatch(target: str,
 
     while (check - deadline) < start:
         response = await aexecute(target, [command], encoding, **kwargs)
-        
-        yield response
 
         match = re.search(condition, str(response))
 
-        if exclude:
-            if not match:
-                break
+        if exclude and not match:
+            matched = True
         elif match:
+            matched = True
+        
+        callback(response, matched)
+
+        if matched:
             break
 
         time.sleep(interval)
