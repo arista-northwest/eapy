@@ -24,16 +24,14 @@ make init
 pipenv shell
 ```
 
-Usage
------
-
-### CLI
+### CLI Usage
 
 ```bash
-% eapi --help
+% eapi --help                                                                                                                 
 Usage: eapi [OPTIONS] TARGET COMMAND [ARGS]...
 
 Options:
+  -e, --encoding TEXT
   -u, --username TEXT     Username (default: admin
   -p, --password TEXT     Username (default: <blank>
   --cert TEXT             Client certificate file
@@ -67,13 +65,17 @@ responses:
     Free memory:            616500 kB
 
 % eapi veos watch "show clock"
-Watching: 'show clock' on http://veos3
-Tue Apr 28 18:16:12 2020
+Watching 'show clock' in http://veos3
+
+Thu Apr 30 10:07:57 2020
 Timezone: UTC
 Clock source: local
 ^C
 Aborted!
 ```
+
+API
+---
 
 ### Simple example (uses default username/password):
 
@@ -166,4 +168,94 @@ See the eAPI client certificate authentication cheetsheet [here](https://gist.gi
 ```python
 >>> eapi.sessions.SSL_WARNINGS = False
 >>> resp = eapi.execute("https://veos", ["show version"], cert=("/path/to/client.crt", "/path/to/client.key"), verify=False)
+```
+
+
+### Async
+
+```python
+import asyncio
+import eapi
+resp = asyncio.run(eapi.aexecute("veos3", ["show clock"], auth=("admin", ""), encoding="text"))
+print(resp.pretty)
+```
+
+_Output_
+
+```bash
+target: http://veos3
+status: [0, OK]
+
+responses:
+- command: show clock
+  result: |
+    Thu Apr 30 10:13:24 2020
+    Timezone: UTC
+    Clock source: local
+```
+
+### Example: watch several targets
+
+```python
+import asyncio
+import eapi
+
+async def run():
+    tasks = []
+    for target in ["veos1", "veos2", "veos3", "veos4"]:
+        
+        tasks.append(eapi.awatch(target, "show clock",
+            auth=("admin", ""),
+            encoding="text",
+            callback=lambda r,_: print(r.pretty),
+            deadline=10
+        ))
+    await asyncio.wait(tasks)
+
+asyncio.run(run())
+```
+
+_Output_
+
+```bash
+target: http://veos3
+status: [0, OK]
+
+responses:
+- command: show clock
+  result: |
+    Thu Apr 30 10:44:29 2020
+    Timezone: UTC
+    Clock source: local
+
+target: http://veos4
+status: [0, OK]
+
+responses:
+- command: show clock
+  result: |
+    Fri Mar 20 07:25:19 2020
+    Timezone: UTC
+    Clock source: local
+
+target: http://veos2
+status: [0, OK]
+
+responses:
+- command: show clock
+  result: |
+    Fri May  1 00:41:15 2020
+    Timezone: UTC
+    Clock source: local
+
+target: http://veos1
+status: [0, OK]
+
+responses:
+- command: show clock
+  result: |
+    Fri May  1 00:41:14 2020
+    Timezone: UTC
+    Clock source: local
+^C
 ```
