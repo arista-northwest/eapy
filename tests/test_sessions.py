@@ -1,8 +1,11 @@
 import asyncio
 
 from sys import version
-from eapi.util import prepare_request
+
+import httpx
 import pytest
+
+from eapi.util import prepare_request
 
 import eapi
 import eapi.exceptions
@@ -29,7 +32,7 @@ def test_login_err(target):
         with pytest.raises(eapi.exceptions.EapiAuthenticationFailure):
             sess.login(target, auth=("sdfsf", "sfs"))
         
-        with pytest.raises(eapi.exceptions.EapiHttpError):
+        with pytest.raises(httpx.HTTPError):
             sess._send(t.url + "/login", None)
 
 def test_send(session, target, auth):
@@ -37,7 +40,7 @@ def test_send(session, target, auth):
 
 def test_http_error(session, target):
     t = Target.from_string(target)
-    with pytest.raises(eapi.exceptions.EapiHttpError):
+    with pytest.raises(eapi.exceptions.EapiPathNotFoundError):
         session._send(t.url + "/badpath", {})
  
 def test_jsonrc_error(session, target):

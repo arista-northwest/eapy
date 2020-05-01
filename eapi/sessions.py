@@ -13,7 +13,7 @@ import eapi.environments
 from eapi.environments import EAPI_DEFAULT_TIMEOUT
 from eapi.util import prepare_request
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
-    EapiHttpError, EapiTimeoutError
+    EapiPathNotFoundError, EapiTimeoutError
 from eapi.types import Auth, Certificate, Command
 
 from eapi.messages import Response, Target
@@ -57,6 +57,17 @@ class BaseSession(object):
 
         # store parameters for future requests
         self._eapi_sessions: Dict[str, dict] = {}
+
+    def _handle_send_response(self, response):
+
+        if response.status_code == 401:
+            raise EapiAuthenticationFailure(response.reason_phrase)
+        
+        if response.status_code == 404:
+            raise EapiPathNotFoundError(response.reason_phrase)
+        
+        response.raise_for_status()
+        
 
     def _handle_login_response(self, target, auth, resp):
         if resp.status_code == 404:
@@ -130,12 +141,7 @@ class Session(BaseSession):
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
 
-        try:
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            if response.status_code == 401:
-                raise EapiAuthenticationFailure(str(exc))
-            raise EapiHttpError(str(exc))
+        self._handle_send_response(response)
 
         return response
 
@@ -162,9 +168,6 @@ class Session(BaseSession):
         :param type: Target
         :param auth: username, password tuple
         :param type: Auth
-        :param \*\*options: other pass through `httpx` options
-        :param type: HttpxOptions
-
         """
         target_: Target = Target.from_string(target)
 
@@ -250,13 +253,8 @@ class AsyncSession(BaseSession):
             raise EapiTimeoutError(str(exc))
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
-
-        try:
-            response.raise_for_status()
-        except httpx.HTTPError as exc:
-            if response.status_code == 401:
-                raise EapiAuthenticationFailure(str(exc))
-            raise EapiHttpError(str(exc))
+        
+        self._handle_send_response(response)
 
         return response
 

@@ -22,6 +22,9 @@ class EapiResponseError(EapiError):
     """The response contains errors"""
     pass
 
+class EapiPathNotFoundError(EapiError):
+    """authentication has failed"""
+    pass
 
 class EapiAuthenticationFailure(EapiError):
     """authentication has failed"""
