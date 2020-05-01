@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
-from eapi.environments import EAPI_DEFAULT_TRANSPORT
+
+import json
 import re
 
 from collections.abc import Mapping
@@ -10,8 +11,9 @@ from typing import List, Union, Optional
 from typing_extensions import TypedDict
 
 import eapi.sessions
-from eapi.types import Command
 
+from eapi.environments import EAPI_DEFAULT_TRANSPORT
+from eapi.types import Command
 from eapi.util import zpad, indent
 
 _TRANSPORTS = {"http": 80, "https": 443}
@@ -119,9 +121,17 @@ class Response(Mapping):
     def target(self):
         return self._target
 
+    @property
+    def json(self):
+        return json.dumps(self.to_dict())
+
+    @property
+    def pretty(self):
+        return str(self)
+
     def to_dict(self) -> dict:
         out = {}
-        out["target"] = self._target
+        out["target"] = self._target.url
         out["status"] = [self.code, self.message]
 
         out["responses"] = []
