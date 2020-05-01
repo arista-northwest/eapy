@@ -12,13 +12,14 @@ from eapi import util
 
 @click.group()
 @click.argument("target")
+@click.option("--encoding", "-e", default="text")
 @click.option("--username", "-u", default="admin", help="Username (default: admin")
 @click.option("--password", "-p", default="", help="Username (default: <blank>")
 @click.option("--cert", help="Client certificate file")
 @click.option("--key", help="Private key file name")
 @click.option("--verify/--no-verify", type=bool, default=True, help="verify SSL cert")
 @click.pass_context
-def main(ctx, target, username, password, cert, key, verify):
+def main(ctx, target, encoding, username, password, cert, key, verify):
     pair = None
     auth = None
     
@@ -32,6 +33,7 @@ def main(ctx, target, username, password, cert, key, verify):
         auth = (username, password)
 
     ctx.obj = {
+        'encoding': encoding,
         'target': target,
         'auth': auth,
         'cert': pair,
@@ -41,11 +43,11 @@ def main(ctx, target, username, password, cert, key, verify):
 
 @main.command()
 @click.argument("commands", nargs=-1, required=True)
-@click.option("--encoding", "-e", default="text")
 @click.pass_context
-def execute(ctx, commands, encoding="text"):
+def execute(ctx, commands):
     
     target = ctx.obj["target"]
+    encoding = ctx.obj["encoding"]
     auth = ctx.obj["auth"]
     cert = ctx.obj["cert"]
     verify = ctx.obj["verify"]
@@ -56,28 +58,34 @@ def execute(ctx, commands, encoding="text"):
         cert=cert,
         verify=verify)
 
-    print(resp)
+    if encoding == "json":
+        print(resp.json)
+    else:
+        print(resp.pretty)
 
 @main.command()
 @click.argument("command", nargs=1, required=True)
-@click.option("--encoding", "-e", default="text")
 @click.option("--interval", "-i", type=int, default=None, help="Time between sends")
 @click.option("--deadline", "-d", type=float, default=None, help="Limit how long to watch")
 @click.option("--exclude / --no-exclude", default=False, help="Match if condition is FALSE")
 @click.option("--condition", "-c", default=None, help="Pattern to search for, watch ends when matched")
 @click.pass_context
-def watch(ctx, command, encoding, interval, deadline, exclude, condition):
+def watch(ctx, command, interval, deadline, exclude, condition):
     
     target = ctx.obj["target"]
+    encoding = ctx.obj["encoding"]
     auth = ctx.obj["auth"]
     cert = ctx.obj["cert"]
     verify = ctx.obj["verify"]
 
     def _cb(response, matched):
-        util.clear_screen()
-        print(f"Watching '{response[0].command}' in {response.target}")
-        print()
-        print(response[0])
+        if encoding == "json":
+            print(response.json)
+        else:
+            util.clear_screen()
+            print(f"Watching '{response[0].command}' in {response.target}")
+            print()
+            print(response[0])
 
     eapi.watch(target, command,
         callback=_cb,
