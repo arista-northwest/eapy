@@ -10,7 +10,7 @@ import eapi.sessions
 
 from eapi.sessions import Session
 
-from eapi.messages import _TARGET_RE
+from eapi.messages import _TARGET_RE, Target
 from eapi.types import Certificate, Request
 from eapi.util import prepare_request
 
@@ -98,7 +98,7 @@ def text_response():
         ]
     }
 
-    return "localhost", request, response
+    return Target.from_string("localhost"), request, response
 
 @pytest.fixture()
 def json_response():
@@ -129,7 +129,7 @@ def json_response():
         ]
     }
 
-    return "localhost", request, response
+    return Target.from_string("localhost"), request, response
 
 @pytest.fixture()
 def errored_response():
@@ -154,7 +154,7 @@ def errored_response():
         }
     }
 
-    return "localhost", request, response 
+    return Target.from_string("localhost"), request, response 
 
 @pytest.fixture()
 def errored_text_response():
@@ -177,7 +177,7 @@ def errored_text_response():
         }
     }
 
-    return "localhost", request, response
+    return Target.from_string("localhost"), request, response
 
 @pytest.fixture()
 def jsonrpcerr_response():
@@ -190,4 +190,4 @@ def jsonrpcerr_response():
         }
     }
 
-    return "localhost", None, response
+    return Target.from_string("localhost"), None, response
