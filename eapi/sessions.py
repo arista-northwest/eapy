@@ -9,8 +9,9 @@ import warnings
 from typing import Dict, List, Optional, Union
 
 import httpx
+
 import eapi.environments
-from eapi.environments import EAPI_DEFAULT_TIMEOUT
+
 from eapi.util import prepare_request
 from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
     EapiPathNotFoundError, EapiTimeoutError
@@ -34,15 +35,16 @@ class DisableSslWarnings(object):
     def __exit__(self, *args):
         warnings.simplefilter('default', self.category)
 
+
 class BaseSession(object):
 
-    def __init__(self, 
-            klass: Union[httpx.Client, httpx.AsyncClient],
-            auth: Optional[Auth] = None,
-            cert: Optional[Certificate] = None,
-            verify: Optional[bool] = None,
-            **kwargs):
-        
+    def __init__(self,
+                 klass: Union[httpx.Client, httpx.AsyncClient],
+                 auth: Optional[Auth] = None,
+                 cert: Optional[Certificate] = None,
+                 verify: Optional[bool] = None,
+                 **kwargs):
+
         if verify is None:
             verify = eapi.environments.SSL_VERIFY
 
@@ -62,12 +64,11 @@ class BaseSession(object):
 
         if response.status_code == 401:
             raise EapiAuthenticationFailure(response.reason_phrase)
-        
+
         if response.status_code == 404:
             raise EapiPathNotFoundError(response.reason_phrase)
-        
+
         response.raise_for_status()
-        
 
     def _handle_login_response(self, target, auth, resp):
         if resp.status_code == 404:
@@ -92,10 +93,10 @@ class BaseSession(object):
 
         self._eapi_sessions[target.domain] = options
 
-    def logged_in(self, 
-            target: Union[str, Target],
-            transport: Optional[str] = None
-        ) -> bool:
+    def logged_in(self,
+                  target: Union[str, Target],
+                  transport: Optional[str] = None
+                  ) -> bool:
         """determines if session cookie is set"""
         target_: Target = Target.from_string(target)
 
@@ -103,12 +104,13 @@ class BaseSession(object):
 
         return True if cookie else False
 
+
 class Session(BaseSession):
     def __init__(self,
-            auth: Optional[Auth] = None,
-            cert: Optional[Certificate] = None,
-            verify: Optional[bool] = None,
-            **kwargs):
+                 auth: Optional[Auth] = None,
+                 cert: Optional[Certificate] = None,
+                 verify: Optional[bool] = None,
+                 **kwargs):
 
         super().__init__(
             klass=httpx.Client,
@@ -154,7 +156,7 @@ class Session(BaseSession):
         """
 
         target_: Target = Target.from_string(target)
-        
+
         if target_.domain in self._eapi_sessions:
             del self._eapi_sessions[target_.domain]
 
@@ -200,7 +202,7 @@ class Session(BaseSession):
         # get session defaults (set at login)
         options = self._eapi_sessions.get(target_.domain) or {}
         options.update(kwargs)
-        
+
         request = prepare_request(commands, encoding)
 
         response = self._send(target_.url + "/command-api",
@@ -215,10 +217,10 @@ class Session(BaseSession):
 
 class AsyncSession(BaseSession):
     def __init__(self,
-            auth: Optional[Auth] = None,
-            cert: Optional[Certificate] = None,
-            verify: Optional[bool] = None,
-            **kwargs):
+                 auth: Optional[Auth] = None,
+                 cert: Optional[Certificate] = None,
+                 verify: Optional[bool] = None,
+                 **kwargs):
 
         super().__init__(
             klass=httpx.AsyncClient,
@@ -230,7 +232,7 @@ class AsyncSession(BaseSession):
 
     async def aclose(self) -> None:
         await self._session.aclose()
-    
+
     async def __aenter__(self) -> "AsyncSession":
         return self
 
@@ -248,12 +250,12 @@ class AsyncSession(BaseSession):
         try:
             with DisableSslWarnings():
                 response = await self._session.post(url, data=json.dumps(data),
-                                              **options)
+                                                    **options)
         except urllib3.exceptions.ReadTimeoutError as exc:
             raise EapiTimeoutError(str(exc))
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
-        
+
         self._handle_send_response(response)
 
         return response
@@ -290,16 +292,15 @@ class AsyncSession(BaseSession):
         """
 
         target_: Target = Target.from_string(target)
-        
+
         if target_.domain in self._eapi_sessions:
             del self._eapi_sessions[target_.domain]
 
         if self.logged_in(target):
             await self._send(target_.url + "/logout", data={})
 
-
     async def send(self, target: Union[str, Target], commands: List[Command],
-             encoding: Optional[str] = None, **kwargs):
+                   encoding: Optional[str] = None, **kwargs):
         """Send commands to an eAPI target
 
         :param target: eAPI target (host, port)
@@ -321,6 +322,6 @@ class AsyncSession(BaseSession):
         request = prepare_request(commands, encoding)
 
         response = await self._send(target_.url + "/command-api",
-                              data=request, **options)
+                                    data=request, **options)
 
         return Response.from_rpc_response(target_, request, response.json())

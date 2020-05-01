@@ -1,18 +1,22 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
+# Arista Networks, Inc. Confidential and Proprietary.
 
 import os
 import sys
 import re
 import pytest
 
+import eapi.environments
+
+from eapi.util import prepare_request
+from eapi.types import Certificate, Request
+from eapi.sessions import Session
+from eapi.messages import _TARGET_RE, Target
+
+
 sys.path.insert(0, os.path.abspath("."))
 
-import eapi.sessions
-
-from eapi.sessions import Session
-
-from eapi.messages import _TARGET_RE, Target
-from eapi.types import Certificate, Request
-from eapi.util import prepare_request
 
 EAPI_TARGET = os.environ.get('EAPI_TARGET', "")
 EAPI_STARGET = os.environ.get('EAPI_STARGET', "")
@@ -28,6 +32,7 @@ eapi.environments.SSL_WARNINGS = False
 def auth():
     return (EAPI_USER, EAPI_PASSWORD)
 
+
 @pytest.fixture
 def cert():
     cert: Certificate = None
@@ -37,30 +42,33 @@ def cert():
             cert = EAPI_CLIENT_CERT
         else:
             cert = (EAPI_CLIENT_CERT, EAPI_CLIENT_KEY)
-    
+
     return cert
+
 
 @pytest.fixture
 def session(cert, auth):
     return Session(auth=auth, cert=cert, verify=False)
 
+
 @pytest.fixture
 def target():
     return EAPI_TARGET
 
+
 @pytest.fixture
 def starget(target):
     port = None
-    
+
     if EAPI_STARGET:
         _, hostname, port = _TARGET_RE.match(EAPI_STARGET).groups()
     else:
         _, hostname, _ = _TARGET_RE.match(target).groups()
-    
+
     starget = "https://%s" % hostname
     if port:
-       starget += ":%d" % int(port) 
-    
+        starget += ":%d" % int(port)
+
     return starget
 
 
@@ -68,9 +76,11 @@ def starget(target):
 def commands():
     return ["show hostname", "show version"]
 
+
 @pytest.fixture(params=["json", "text"])
 def reqwest(commands, request) -> Request:
     return prepare_request(commands, request.param)
+
 
 @pytest.fixture()
 def text_response():
@@ -100,6 +110,7 @@ def text_response():
 
     return Target.from_string("localhost"), request, response
 
+
 @pytest.fixture()
 def json_response():
     request = prepare_request(["show hostname", "show version"], "json")
@@ -111,13 +122,13 @@ def json_response():
                 'fqdn': 'rbf153.sjc.aristanetworks.com',
                 'hostname': 'rbf153'
             }, {
-                'memTotal': 32890040, 
-                'uptime': 1181670.77, 
+                'memTotal': 32890040,
+                'uptime': 1181670.77,
                 'modelName': 'DCS-7280CR2M-30-F',
                 'internalVersion': '4.23.2.1F-DPE-16108061.42321F',
                 'mfgName': 'Arista',
                 'serialNumber': 'JAS18140236',
-                'systemMacAddress':'74:83:ef:02:a6:fb',
+                'systemMacAddress': '74:83:ef:02:a6:fb',
                 'bootupTimestamp': 1586324536.0,
                 'memFree': 25852932,
                 'version': '4.23.2.1F-DPE',
@@ -130,6 +141,7 @@ def json_response():
     }
 
     return Target.from_string("localhost"), request, response
+
 
 @pytest.fixture()
 def errored_response():
@@ -148,13 +160,14 @@ def errored_response():
                     ]
                 }
             ],
-            
+
             'message': "CLI command 2 of 2 'show bogus' failed: invalid command",
             'code': 1002
         }
     }
 
-    return Target.from_string("localhost"), request, response 
+    return Target.from_string("localhost"), request, response
+
 
 @pytest.fixture()
 def errored_text_response():
@@ -179,13 +192,14 @@ def errored_text_response():
 
     return Target.from_string("localhost"), request, response
 
+
 @pytest.fixture()
 def jsonrpcerr_response():
     response = {
         'jsonrpc': '2.0',
         'id': None,
         'error': {
-            'message': "Expected field 'jsonrpc' not specified", 
+            'message': "Expected field 'jsonrpc' not specified",
             'code': -32600
         }
     }

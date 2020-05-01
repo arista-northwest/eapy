@@ -2,13 +2,13 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-from sys import version
 import click
 
 import eapi
 import eapi.environments
 
 from eapi import util
+
 
 @click.group()
 @click.argument("target")
@@ -22,13 +22,13 @@ from eapi import util
 def main(ctx, target, encoding, username, password, cert, key, verify):
     pair = None
     auth = None
-    
+
     if not verify:
         eapi.environments.SSL_WARNINGS = False
 
     if cert:
         pair = (cert, key)
-    
+
     if not key:
         auth = (username, password)
 
@@ -45,7 +45,7 @@ def main(ctx, target, encoding, username, password, cert, key, verify):
 @click.argument("commands", nargs=-1, required=True)
 @click.pass_context
 def execute(ctx, commands):
-    
+
     target = ctx.obj["target"]
     encoding = ctx.obj["encoding"]
     auth = ctx.obj["auth"]
@@ -53,15 +53,16 @@ def execute(ctx, commands):
     verify = ctx.obj["verify"]
 
     resp = eapi.execute(target, commands,
-        encoding=encoding,
-        auth=auth,
-        cert=cert,
-        verify=verify)
+                        encoding=encoding,
+                        auth=auth,
+                        cert=cert,
+                        verify=verify)
 
     if encoding == "json":
         print(resp.json)
     else:
         print(resp.pretty)
+
 
 @main.command()
 @click.argument("command", nargs=1, required=True)
@@ -71,7 +72,7 @@ def execute(ctx, commands):
 @click.option("--condition", "-c", default=None, help="Pattern to search for, watch ends when matched")
 @click.pass_context
 def watch(ctx, command, interval, deadline, exclude, condition):
-    
+
     target = ctx.obj["target"]
     encoding = ctx.obj["encoding"]
     auth = ctx.obj["auth"]
@@ -88,12 +89,12 @@ def watch(ctx, command, interval, deadline, exclude, condition):
             print(response[0])
 
     eapi.watch(target, command,
-        callback=_cb,
-        encoding=encoding,
-        interval=interval,
-        deadline=deadline,
-        exclude=exclude,
-        condition=condition,
-        auth=auth,
-        cert=cert,
-        verify=verify)
+               callback=_cb,
+               encoding=encoding,
+               interval=interval,
+               deadline=deadline,
+               exclude=exclude,
+               condition=condition,
+               auth=auth,
+               cert=cert,
+               verify=verify)

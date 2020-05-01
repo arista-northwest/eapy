@@ -9,9 +9,11 @@ from eapi.types import Timeout
 EAPI_DEFAULT_ENCODING: str = os.environ.get("EAPI_DEFAULT_ENCODING", "json")
 
 # Specifies whether to add timestamps for each command by default
-EAPI_INCLUDE_TIMESTAMPS: bool = bool(os.environ.get("EAPI_INCLUDE_TIMESTAMPS", False))
+EAPI_INCLUDE_TIMESTAMPS: bool = bool(
+    os.environ.get("EAPI_INCLUDE_TIMESTAMPS", False))
 
-EAPI_DEFAULT_TIMEOUT: Timeout = int(os.environ.get("EAPI_DEFAULT_TIMEOUT", 30.0))
+EAPI_DEFAULT_TIMEOUT: Timeout = int(
+    os.environ.get("EAPI_DEFAULT_TIMEOUT", 30.0))
 
 # By default eapi uses HTTP.  HTTPS ('https') is also supported
 EAPI_DEFAULT_TRANSPORT: str = os.environ.get("EAPI_DEFAULT_TRANSPORT", "http")

@@ -16,12 +16,12 @@ NEVER_RE = r'(?!x)x'
 
 
 def execute(target: str,
-        commands: List[Command],
-        encoding: Optional[str] = None,
-        auth: Optional[Auth] = None,
-        cert: Optional[Certificate] = None,
-        verify: Optional[bool] = None,
-        **kwargs) -> Response:
+            commands: List[Command],
+            encoding: Optional[str] = None,
+            auth: Optional[Auth] = None,
+            cert: Optional[Certificate] = None,
+            verify: Optional[bool] = None,
+            **kwargs) -> Response:
     """Send an eAPI request
 
     :param target: eAPI target 
@@ -41,7 +41,7 @@ def execute(target: str,
 
 
 def enable(target: str, commands: List[Command], secret: str = "",
-        encoding: Optional[str] = None, **kwargs) -> Response:
+           encoding: Optional[str] = None, **kwargs) -> Response:
     """Prepend 'enable' command
     :param target: eAPI target 
     :param type: Target
@@ -60,7 +60,7 @@ def enable(target: str, commands: List[Command], secret: str = "",
 
 
 def configure(target: str, commands: List[Command],
-        encoding: Optional[str] = None, **kwargs) -> Response:
+              encoding: Optional[str] = None, **kwargs) -> Response:
     """Wrap commands in a 'configure'/'end' block
 
     :param target: eAPI target 
@@ -81,15 +81,14 @@ def configure(target: str, commands: List[Command],
 
 
 def watch(target: str,
-        command: Command,
-        callback: Callable = None,
-        encoding: Optional[str] = None,
-        interval: Optional[int] = None,
-        deadline: Optional[float] = None,
-        exclude: bool = False,
-        condition: Optional[str] = None,
-        **kwargs) -> Optional[Iterator[Response]]:
-    
+          command: Command,
+          callback: Callable = None,
+          encoding: Optional[str] = None,
+          interval: Optional[int] = None,
+          deadline: Optional[float] = None,
+          exclude: bool = False,
+          condition: Optional[str] = None,
+          **kwargs) -> Optional[Iterator[Response]]:
     """Watch a command until deadline or condition matches
 
     :param target: eAPI target 
@@ -114,7 +113,7 @@ def watch(target: str,
     :return: :class:`Response <Response>` object
     :rtype: eapi.messages.Response
     """
-    
+
     matched: bool = False
 
     exclude = bool(exclude)
@@ -139,7 +138,7 @@ def watch(target: str,
             matched = True
         elif match:
             matched = True
-        
+
         callback(response, matched)
 
         if matched:
@@ -148,13 +147,14 @@ def watch(target: str,
         time.sleep(interval)
         check = time.time()
 
+
 async def aexecute(target: str,
-        commands: List[Command],
-        encoding: Optional[str] = None,
-        auth: Optional[Auth] = None,
-        cert: Optional[Certificate] = None,
-        verify: Optional[bool] = None,
-        **kwargs) -> Response:
+                   commands: List[Command],
+                   encoding: Optional[str] = None,
+                   auth: Optional[Auth] = None,
+                   cert: Optional[Certificate] = None,
+                   verify: Optional[bool] = None,
+                   **kwargs) -> Response:
     """Send command(s) to an eAPI target (async version)
 
     :param target: eAPI target 
@@ -172,8 +172,9 @@ async def aexecute(target: str,
     async with AsyncSession(auth=auth, cert=cert, verify=verify) as sess:
         return await sess.send(target, commands, encoding=encoding, **kwargs)
 
+
 async def aenable(target: str, commands: List[Command], secret: str = "",
-        encoding: Optional[str] = None, **kwargs) -> Response:
+                  encoding: Optional[str] = None, **kwargs) -> Response:
     """Prepend 'enable' command (async version)
     :param target: eAPI target 
     :param type: Target
@@ -192,7 +193,7 @@ async def aenable(target: str, commands: List[Command], secret: str = "",
 
 
 async def aconfigure(target: str, commands: List[Command],
-        encoding: Optional[str] = None, **kwargs) -> Response:
+                     encoding: Optional[str] = None, **kwargs) -> Response:
     """Wrap commands in a 'configure'/'end' block (async version)
 
     :param target: eAPI target 
@@ -211,17 +212,18 @@ async def aconfigure(target: str, commands: List[Command],
     commands.append("end")
     return await aexecute(target, commands, encoding, **kwargs)
 
+
 async def awatch(target: str,
-        command: Command,
-        callback: Callable = None,
-        encoding: Optional[str] = None,
-        interval: Optional[int] = None,
-        deadline: Optional[float] = None,
-        exclude: bool = False,
-        condition: Optional[str] = None,
-        
-        **kwargs) -> None:
-    
+                 command: Command,
+                 callback: Callable = None,
+                 encoding: Optional[str] = None,
+                 interval: Optional[int] = None,
+                 deadline: Optional[float] = None,
+                 exclude: bool = False,
+                 condition: Optional[str] = None,
+
+                 **kwargs) -> None:
+
     """Watch a command until deadline or condition matches (async version)
 
     :param target: eAPI target 
@@ -247,7 +249,7 @@ async def awatch(target: str,
     """
 
     matched: bool = False
-    
+
     exclude = bool(exclude)
 
     if not interval:
@@ -271,7 +273,7 @@ async def awatch(target: str,
             matched = True
         elif match:
             matched = True
-        
+
         callback(response, matched)
 
         if matched:

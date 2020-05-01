@@ -12,11 +12,13 @@ from eapi.types import Command, Params, Request
 
 from eapi.environments import EAPI_DEFAULT_ENCODING
 
+
 def clear_screen() -> None:
-    if os.name == 'nt': 
+    if os.name == 'nt':
         os.system('cls')
-    else: 
+    else:
         os.system('clear')
+
 
 def indent(spaces, text: str):
     indented = []
