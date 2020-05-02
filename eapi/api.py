@@ -37,7 +37,7 @@ def execute(target: str,
     """
 
     with Session(auth=auth, cert=cert, verify=verify) as sess:
-        return sess.send(target, commands, encoding=encoding, **kwargs)
+        return sess.call(target, commands, encoding=encoding, **kwargs)
 
 
 def enable(target: str, commands: List[Command], secret: str = "",
@@ -170,7 +170,7 @@ async def aexecute(target: str,
     """
 
     async with AsyncSession(auth=auth, cert=cert, verify=verify) as sess:
-        return await sess.send(target, commands, encoding=encoding, **kwargs)
+        return await sess.call(target, commands, encoding=encoding, **kwargs)
 
 
 async def aenable(target: str, commands: List[Command], secret: str = "",

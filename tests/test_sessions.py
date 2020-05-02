@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 from sys import version
 
@@ -22,10 +23,8 @@ pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 def test_login(session, target):
 
     session.login(target)
-
-    session.login(target)
-
     assert session.logged_in(target)
+    session.call(target, ["show version"])
 
 
 def test_login_err(target):
@@ -35,54 +34,54 @@ def test_login_err(target):
             sess.login(target, auth=("sdfsf", "sfs"))
 
         with pytest.raises(httpx.HTTPError):
-            sess._send(t.url + "/login", None)
+            sess._call(t.url + "/login", None)
 
 
-def test_send(session, target, auth):
-    session.send(target, ["show hostname"])
+def test_call(session, target, auth):
+    session.call(target, ["show hostname"])
 
 
 def test_http_error(session, target):
     t = Target.from_string(target)
     with pytest.raises(eapi.exceptions.EapiPathNotFoundError):
-        session._send(t.url + "/badpath", {})
+        session._call(t.url + "/badpath", {})
 
 
 def test_jsonrc_error(session, target):
     tgt = Target.from_string(target)
     req = prepare_request(["show hostname"])
     req["method"] = "bogus"
-    resp = session._send(tgt.url + "/command-api", req)
+    resp = session._call(tgt.url + "/command-api", req)
 
     rresp = Response.from_rpc_response(tgt, req, resp.json())
 
     assert rresp.code < 0
 
 
-def test_send_timeout(session, target):
+def test_call_timeout(session, target):
     with pytest.raises(eapi.exceptions.EapiTimeoutError):
-        session.send(target, ["bash timeout 30 sleep 30"], timeout=1)
+        session.call(target, ["bash timeout 30 sleep 30"], timeout=1)
 
     with pytest.raises(eapi.exceptions.EapiError):
-        session.send("bogus", ["bash timeout 30 sleep 30"], timeout=1)
+        session.call("bogus", ["bash timeout 30 sleep 30"], timeout=1)
 
 
 def test_context(target, auth):
     with eapi.Session() as sess:
         sess.login(target, auth=auth)
-        sess.send(target, ["show hostname"])
+        sess.call(target, ["show hostname"])
 
 
 def test_ssl_verify(starget, cert):
 
     sess = Session(cert=cert)
     with pytest.raises(eapi.exceptions.EapiError):
-        sess.send(starget, ["show users"])
+        sess.call(starget, ["show users"])
 
 
 def test_ssl(session, starget, cert):
     session.login(starget)
-    session.send(starget, ["show users"])
+    session.call(starget, ["show users"])
 
 
 def test_logout(target, auth):
@@ -100,10 +99,10 @@ def test_unauth(session, target):
         session.login(target, auth=("l33t", "h3x0r"))
 
 
-def test_send_noauth(session, target):
+def test_call_noauth(session, target):
     sess = Session()
     with pytest.raises(eapi.exceptions.EapiAuthenticationFailure):
-        sess.send(target, ["show hostname"])
+        sess.call(target, ["show hostname"])
 
 
 @pytest.mark.asyncio
@@ -120,7 +119,7 @@ async def test_async(target, auth):
         tasks = []
         for t in targets:
             for c in commands:
-                tasks.append(sess.send(t, [c], encoding="text"))
+                tasks.append(sess.call(t, [c], encoding="text"))
 
         responses = await asyncio.gather(*tasks)
 

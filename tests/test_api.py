@@ -7,8 +7,9 @@ import asyncio
 import pytest
 
 import eapi
+import eapi.messages
 
-from tests.conftest import EAPI_TARGET, commands
+from tests.conftest import EAPI_TARGET
 
 pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
@@ -60,7 +61,7 @@ def test_configure(target, auth):
 
 def test_watch(target, auth):
     def _cb(r, matched: bool):
-        print(r)
+        assert isinstance(r, eapi.messages.Response)
     
     eapi.watch(target, "show clock", callback=_cb, auth=auth, encoding="text", deadline=10)
     
@@ -74,7 +75,7 @@ async def test_awatch(target, auth):
     tasks = []
 
     def _cb(r, match: bool):
-        print(r)
+        assert isinstance(r, eapi.messages.Response)
 
     for c in ["show clock", "show hostname"]:
         tasks.append(

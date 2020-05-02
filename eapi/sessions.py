@@ -60,7 +60,7 @@ class BaseSession(object):
         # store parameters for future requests
         self._eapi_sessions: Dict[str, dict] = {}
 
-    def _handle_send_response(self, response):
+    def _handle_call_response(self, response):
 
         if response.status_code == 401:
             raise EapiAuthenticationFailure(response.reason_phrase)
@@ -124,10 +124,10 @@ class Session(BaseSession):
         return self
 
     def __exit__(self, *args) -> None:
-        self.shutdown()
+        self.close()
 
-    def _send(self, url, data, **options) -> httpx.Response:
-        """Sends the request to EAPI"""
+    def _call(self, url, data, **options) -> httpx.Response:
+        """calls the request to EAPI"""
 
         response = None
 
@@ -143,9 +143,13 @@ class Session(BaseSession):
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
 
-        self._handle_send_response(response)
+        self._handle_call_response(response)
 
         return response
+
+    def close(self):
+        """shutdown the underlying httpx session"""
+        self._session.close()
 
     def logout(self, target: Union[str, Target]) -> None:
         """Log out of an eAPI session
@@ -161,7 +165,7 @@ class Session(BaseSession):
             del self._eapi_sessions[target_.domain]
 
         if self.logged_in(target):
-            self._send(target_.url + "/logout", data={})
+            self._call(target_.url + "/logout", data={})
 
     def login(self, target: Union[str, Target], auth: Optional[Auth] = None) -> None:
         """Login to an eAPI session
@@ -179,13 +183,13 @@ class Session(BaseSession):
         username, password = auth or self._session.auth
         payload = {"username": username, "password": password}
 
-        resp = self._send(target_.url + "/login", data=payload)
+        resp = self._call(target_.url + "/login", data=payload)
 
         self._handle_login_response(target_, auth, resp)
 
-    def send(self, target: Union[str, Target], commands: List[Command],
+    def call(self, target: Union[str, Target], commands: List[Command],
              encoding: Optional[str] = None, **kwargs):
-        """Send commands to an eAPI target
+        """call commands to an eAPI target
 
         :param target: eAPI target (host, port)
         :param type: Target
@@ -205,14 +209,10 @@ class Session(BaseSession):
 
         request = prepare_request(commands, encoding)
 
-        response = self._send(target_.url + "/command-api",
+        response = self._call(target_.url + "/command-api",
                               data=request, **options)
 
         return Response.from_rpc_response(target_, request, response.json())
-
-    def shutdown(self):
-        """shutdown the underlying httpx session"""
-        self._session.close()
 
 
 class AsyncSession(BaseSession):
@@ -230,17 +230,14 @@ class AsyncSession(BaseSession):
             **kwargs
         )
 
-    async def aclose(self) -> None:
-        await self._session.aclose()
-
     async def __aenter__(self) -> "AsyncSession":
         return self
 
     async def __aexit__(self, *args) -> None:
-        await self.aclose()
+        await self.close()
 
-    async def _send(self, url, data, **options) -> httpx.Response:
-        """Sends the request to EAPI"""
+    async def _call(self, url, data, **options) -> httpx.Response:
+        """Post to eAPI endpoint"""
 
         response = None
 
@@ -256,9 +253,12 @@ class AsyncSession(BaseSession):
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
 
-        self._handle_send_response(response)
+        self._handle_call_response(response)
 
         return response
+
+    async def close(self) -> None:
+        await self._session.aclose()
 
     async def login(self, target: Union[str, Target], auth: Optional[Auth] = None) -> None:
         """Login to an eAPI session
@@ -279,7 +279,7 @@ class AsyncSession(BaseSession):
         username, password = auth or self._session.auth
         payload = {"username": username, "password": password}
 
-        resp = await self._send(target_.url + "/login", data=payload)
+        resp = await self._call(target_.url + "/login", data=payload)
 
         self._handle_login_response(target_, auth, resp)
 
@@ -297,11 +297,11 @@ class AsyncSession(BaseSession):
             del self._eapi_sessions[target_.domain]
 
         if self.logged_in(target):
-            await self._send(target_.url + "/logout", data={})
+            await self._call(target_.url + "/logout", data={})
 
-    async def send(self, target: Union[str, Target], commands: List[Command],
+    async def call(self, target: Union[str, Target], commands: List[Command],
                    encoding: Optional[str] = None, **kwargs):
-        """Send commands to an eAPI target
+        """call commands to an eAPI target
 
         :param target: eAPI target (host, port)
         :param type: Target
@@ -321,7 +321,7 @@ class AsyncSession(BaseSession):
 
         request = prepare_request(commands, encoding)
 
-        response = await self._send(target_.url + "/command-api",
+        response = await self._call(target_.url + "/command-api",
                                     data=request, **options)
 
         return Response.from_rpc_response(target_, request, response.json())
