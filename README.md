@@ -6,6 +6,7 @@ Features:
 
 - SSL Client certificates
 - Login/Logout endpoints
+- Asyncio
 
 Installation
 ------------
