@@ -9,30 +9,34 @@ import pytest
 import eapi
 import eapi.messages
 
-from tests.conftest import EAPI_TARGET
+# from tests.conftest import EAPI_TARGET
 
-pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
+# pytestmark = pytest.mark.skipif(not EAPI_TARGET, reason="target not set")
 
 
-def test_execute(target, commands, auth):
+def test_execute(server, commands, auth):
+    target = str(server.url)
     eapi.execute(target, commands=commands, auth=auth)
 
-def test_enable(target, commands, auth):
+def test_enable(server, commands, auth):
+    target = str(server.url)
     eapi.enable(target, commands=commands, auth=auth, secret="s3cr3t")
 
-def test_execute_text(target, commands, auth):
+def test_execute_text(server, commands, auth):
+    target = str(server.url)
     eapi.execute(target, commands=commands, auth=auth, encoding="text")
 
 
-def test_execute_jsonerr(target, auth):
-
+def test_execute_jsonerr(server, auth):
+    target = str(server.url)
     response = eapi.execute(
         target, commands=["show hostname", "show bogus"], auth=auth, encoding="json")
+    print(response)
     assert response.code > 0
 
 
-def test_execute_err(target, auth):
-
+def test_execute_err(server, auth):
+    target = str(server.url)
     response = eapi.execute(target,
         commands=[
             "show hostname",
@@ -45,8 +49,8 @@ def test_execute_err(target, auth):
     assert response.code > 0
 
 
-def test_configure(target, auth):
-
+def test_configure(server, auth):
+    target = str(server.url)
     eapi.configure(target, [
         "ip access-list standard DELETE_ME",
         "permit any"
@@ -59,7 +63,8 @@ def test_configure(target, auth):
     ], auth=auth)
 
 
-def test_watch(target, auth):
+def test_watch(server, auth):
+    target = str(server.url)
     def _cb(r, matched: bool):
         assert isinstance(r, eapi.messages.Response)
     
@@ -67,11 +72,13 @@ def test_watch(target, auth):
     
 
 @pytest.mark.asyncio
-async def test_aexecute(target, commands, auth):
+async def test_aexecute(server, commands, auth):
+    target = str(server.url)
     resp = await eapi.aexecute(target, commands, auth=auth)
 
 @pytest.mark.asyncio
-async def test_awatch(target, auth):
+async def test_awatch(server, auth):
+    target = str(server.url)
     tasks = []
 
     def _cb(r, match: bool):

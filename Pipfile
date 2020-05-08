@@ -10,6 +10,7 @@ coverage="*"
 pytest="*"
 pytest-asyncio="*"
 Sphinx="*"
+uvicorn="*"
 
 [packages]
 httpx="*"

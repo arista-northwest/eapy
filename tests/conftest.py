@@ -4,7 +4,7 @@
 
 import os
 import sys
-import re
+
 import pytest
 
 import eapi.environments
@@ -18,15 +18,16 @@ from eapi.messages import _TARGET_RE, Target
 sys.path.insert(0, os.path.abspath("."))
 
 
-EAPI_TARGET = os.environ.get('EAPI_TARGET', "")
-EAPI_STARGET = os.environ.get('EAPI_STARGET', "")
+EAPI_TARGET = os.environ.get('EAPI_TARGET', "localhost:8000")
+EAPI_STARGET = os.environ.get('EAPI_STARGET', "localhost:8001")
 EAPI_USER = os.environ.get('EAPI_USER', "admin")
-EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "")
+EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "admin")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 
 eapi.environments.SSL_WARNINGS = False
 
+from tests.server import server, https_server
 
 @pytest.fixture
 def auth():
@@ -58,6 +59,8 @@ def target():
 
 @pytest.fixture
 def starget(target):
+    if not target:
+        return None
     port = None
 
     if EAPI_STARGET:
@@ -81,6 +84,11 @@ def commands():
 def reqwest(commands, request) -> Request:
     return prepare_request(commands, request.param)
 
+@pytest.fixture()
+def httpx_404(): ...
+
+@pytest.fixture()
+def httpx_401(): ...
 
 @pytest.fixture()
 def text_response():
