@@ -3,7 +3,6 @@
 # Arista Networks, Inc. Confidential and Proprietary.
 
 import json
-import urllib3
 import warnings
 
 from typing import Dict, List, Optional, Union
@@ -18,23 +17,6 @@ from eapi.exceptions import EapiAuthenticationFailure, EapiError, \
 from eapi.types import Auth, Certificate, Command
 
 from eapi.messages import Response, Target
-
-
-class DisableSslWarnings(object):
-    """Context manager to disable then re-enable SSL warnings"""
-    #pylint: disable=R0903
-
-    def __init__(self):
-        self.category = urllib3.exceptions.InsecureRequestWarning
-
-    def __enter__(self):
-
-        if not eapi.environments.SSL_WARNINGS:
-            warnings.simplefilter('ignore', self.category)
-
-    def __exit__(self, *args):
-        warnings.simplefilter('default', self.category)
-
 
 class BaseSession(object):
 
@@ -135,11 +117,8 @@ class Session(BaseSession):
             options["timeout"] = eapi.environments.EAPI_DEFAULT_TIMEOUT
 
         try:
-            with DisableSslWarnings():
-                response = self._session.post(url, data=json.dumps(data),
-                                              **options)
-        except urllib3.exceptions.ReadTimeoutError as exc:
-            raise EapiTimeoutError(str(exc))
+            response = self._session.post(url, data=json.dumps(data),
+                                            **options)
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
 
@@ -245,11 +224,8 @@ class AsyncSession(BaseSession):
             options["timeout"] = eapi.environments.EAPI_DEFAULT_TIMEOUT
 
         try:
-            with DisableSslWarnings():
-                response = await self._session.post(url, data=json.dumps(data),
-                                                    **options)
-        except urllib3.exceptions.ReadTimeoutError as exc:
-            raise EapiTimeoutError(str(exc))
+            response = await self._session.post(url, data=json.dumps(data),
+                                                **options)
         except httpx.HTTPError as exc:
             raise EapiError(str(exc))
 

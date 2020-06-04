@@ -25,7 +25,7 @@ EAPI_PASSWORD = os.environ.get('EAPI_PASSWORD', "admin")
 EAPI_CLIENT_CERT = os.environ.get('EAPI_CLIENT_CERT')
 EAPI_CLIENT_KEY = os.environ.get('EAPI_CLIENT_KEY')
 
-eapi.environments.SSL_WARNINGS = False
+# eapi.environments.SSL_WARNINGS = False
 
 from tests.server import server, https_server
 

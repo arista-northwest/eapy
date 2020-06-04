@@ -20,6 +20,3 @@ EAPI_DEFAULT_TRANSPORT: str = os.environ.get("EAPI_DEFAULT_TRANSPORT", "http")
 
 # Set this to false to allow untrusted HTTPS/SSL
 SSL_VERIFY: bool = bool(os.environ.get("SSL_VERIFY", True))
-
-# Set this to false to supress warnings about untrusted HTTPS/SSL
-SSL_WARNINGS: bool = bool(os.environ.get("SSL_WARNINGS", True))
