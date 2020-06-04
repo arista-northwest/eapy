@@ -17,5 +17,3 @@ httpx="*"
 typing-extensions="*"
 click="*"
 
-[requires]
-python_version = "3.7"

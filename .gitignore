@@ -100,10 +100,7 @@ ENV/
 # mypy
 .mypy_cache/
 
-
 .direnv/
 .envrc
-
 .pytest_cache/
-
 .vscode/
