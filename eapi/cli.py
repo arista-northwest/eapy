@@ -23,9 +23,6 @@ def main(ctx, target, encoding, username, password, cert, key, verify):
     pair = None
     auth = None
 
-    if not verify:
-        eapi.environments.SSL_WARNINGS = False
-
     if cert:
         pair = (cert, key)
 
