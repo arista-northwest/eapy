@@ -230,7 +230,7 @@ async def awatch(target: str,
     :param type: Target
     :param commmand: A single command to send
     :param type: list
-    :param callback: Callback function for responses
+    :param callback: Async callback function for responses
     :param type: Callable
     :param encoding: json or text (default: json)
     :param type: str
@@ -274,7 +274,7 @@ async def awatch(target: str,
         elif match:
             matched = True
 
-        callback(response, matched)
+        await callback(response, matched)
 
         if matched:
             break
