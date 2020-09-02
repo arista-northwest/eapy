@@ -31,7 +31,7 @@ def test_execute_jsonerr(server, auth):
     target = str(server.url)
     response = eapi.execute(
         target, commands=["show hostname", "show bogus"], auth=auth, encoding="json")
-    print(response)
+
     assert response.code > 0
 
 
@@ -81,7 +81,7 @@ async def test_awatch(server, auth):
     target = str(server.url)
     tasks = []
 
-    def _cb(r, match: bool):
+    async def _cb(r, match: bool):
         assert isinstance(r, eapi.messages.Response)
 
     for c in ["show clock", "show hostname"]:
