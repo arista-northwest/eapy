@@ -21,7 +21,7 @@ from eapi.messages import Response, Target
 class BaseSession(object):
 
     def __init__(self,
-                 klass: Union[httpx.Client, httpx.AsyncClient],
+                 klass: type, #Union[httpx.Client, httpx.AsyncClient],
                  auth: Optional[Auth] = None,
                  cert: Optional[Certificate] = None,
                  verify: Optional[bool] = None,

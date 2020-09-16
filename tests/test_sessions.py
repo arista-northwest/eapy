@@ -77,8 +77,8 @@ def test_ssl_verify(starget, cert):
 
 
 def test_ssl(session, starget, cert):
-    session.login(starget)
-    session.call(starget, ["show hostname"])
+    sess = Session(cert=cert)
+    sess.call(starget, ["show hostname"])
 
 
 def test_logout(server, auth):

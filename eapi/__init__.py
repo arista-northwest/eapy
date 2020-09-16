@@ -2,7 +2,7 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
-__version__ = "0.6.3"
+__version__ = "0.6.4"
 
 # from eapi.constants import ENCODING, INCLUDE_TIMESTAMPS, SSL_VERIFY, \
 #                          SSL_WARNINGS, TIMEOUT
