@@ -17,7 +17,7 @@ from eapi import util
 @click.option("--password", "-p", default="", help="Username (default: <blank>")
 @click.option("--cert", help="Client certificate file")
 @click.option("--key", help="Private key file name")
-@click.option("--verify/--no-verify", type=bool, default=True, help="verify SSL cert")
+@click.option("--verify", is_flag=True, help="verify SSL cert")
 @click.pass_context
 def main(ctx, target, encoding, username, password, cert, key, verify):
     pair = None
