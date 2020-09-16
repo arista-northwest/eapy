@@ -70,15 +70,15 @@ def test_context(server, auth):
         sess.call(target, ["show hostname"])
 
 
-# def test_ssl_verify(starget, cert):
-#     sess = Session(cert=cert)
-#     with pytest.raises(eapi.exceptions.EapiError):
-#         sess.call(starget, ["show hostname"])
+def test_ssl_verify(starget, cert):
+    sess = Session(cert=cert)
+    with pytest.raises(eapi.exceptions.EapiError):
+        sess.call(starget, ["show hostname"])
 
 
-# def test_ssl(session, starget, cert):
-#     session.login(starget)
-#     session.call(starget, ["show hostname"])
+def test_ssl(session, starget, cert):
+    session.login(starget)
+    session.call(starget, ["show hostname"])
 
 
 def test_logout(server, auth):
