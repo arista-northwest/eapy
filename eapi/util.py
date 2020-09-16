@@ -2,9 +2,9 @@
 # Copyright (c) 2020 Arista Networks, Inc.  All rights reserved.
 # Arista Networks, Inc. Confidential and Proprietary.
 
+import os
 import uuid
 
-import os
 from typing import Optional, Union, List
 
 import eapi.sessions
@@ -43,7 +43,7 @@ def prepare_cmd(commands: Union[Command, List[Command]]):
     return prepared
 
 
-def prepare_request(commands: List[Command], encoding: Optional[str] = None) -> Request:
+def prepare_request(commands: List[Command], encoding: Optional[str] = None, streaming: bool = False) -> Request:
     commands = prepare_cmd(commands)
     request_id = str(uuid.uuid4())
 
@@ -56,10 +56,17 @@ def prepare_request(commands: List[Command], encoding: Optional[str] = None) -> 
         "cmds": commands
     }
 
+    # 'timestamps': bool,
+	# 'auto_complete': bool,
+	# 'expand_aliases': bool,
+	# 'include_error_detail': bool,
+	# 'streaming': bool # not support until 4.24
+
     req: Request = {
         "jsonrpc": "2.0",
         "method": "runCmds",
         "params": params,
+        "streaming": streaming,
         "id": request_id
     }
     return req
